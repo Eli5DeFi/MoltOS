@@ -4,10 +4,23 @@ import { MenuBar } from './MenuBar';
 import { Dock } from './Dock';
 import { Window } from './Window';
 import { SetupWizard } from '@/components/SetupWizard';
+import { Tutorial } from '@/components/Tutorial';
+import { AutoUpdateChecker } from '@/components/UpdateNotification';
 import { moltbotService } from '@/services/moltbot';
 
 export function Desktop() {
-  const { windows, updateTime, showSetupWizard, completeSetup, setShowSetupWizard, setMoltbotStatus, hasCompletedSetup } = useDesktopStore();
+  const {
+    windows,
+    updateTime,
+    showSetupWizard,
+    completeSetup,
+    setShowSetupWizard,
+    setMoltbotStatus,
+    hasCompletedSetup,
+    showTutorial,
+    completeTutorial,
+    setShowTutorial,
+  } = useDesktopStore();
 
   useEffect(() => {
     const interval = setInterval(updateTime, 1000);
@@ -87,6 +100,22 @@ export function Desktop() {
             completeSetup();
           }}
         />
+      )}
+
+      {/* Tutorial */}
+      {showTutorial && !showSetupWizard && (
+        <Tutorial
+          onComplete={completeTutorial}
+          onSkip={() => {
+            setShowTutorial(false);
+            completeTutorial();
+          }}
+        />
+      )}
+
+      {/* Auto Update Checker */}
+      {hasCompletedSetup && !showSetupWizard && !showTutorial && (
+        <AutoUpdateChecker />
       )}
     </div>
   );

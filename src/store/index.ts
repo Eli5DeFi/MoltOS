@@ -17,6 +17,10 @@ interface DesktopStore {
   showSetupWizard: boolean;
   hasCompletedSetup: boolean;
 
+  // Tutorial
+  showTutorial: boolean;
+  hasCompletedTutorial: boolean;
+
   // App Data
   messages: Message[];
   skills: Skill[];
@@ -73,6 +77,11 @@ interface DesktopStore {
   updateMoltbotInstallStatus: (status: MoltBotInstallStatus) => void;
   setShowSetupWizard: (show: boolean) => void;
   completeSetup: () => void;
+
+  // Tutorial Actions
+  setShowTutorial: (show: boolean) => void;
+  completeTutorial: () => void;
+  startTutorial: () => void;
 }
 
 const defaultSystemStatus: SystemStatus = {
@@ -153,8 +162,9 @@ const appDefaults: Record<AppId, { title: string; width: number; height: number 
   settings: { title: 'Settings', width: 650, height: 500 },
 };
 
-// Check if user has completed setup before
+// Check if user has completed setup and tutorial before
 const hasCompletedSetupBefore = localStorage.getItem('moltos_setup_complete') === 'true';
+const hasCompletedTutorialBefore = localStorage.getItem('moltos_tutorial_complete') === 'true';
 
 export const useDesktopStore = create<DesktopStore>((set, get) => ({
   windows: [],
@@ -166,6 +176,8 @@ export const useDesktopStore = create<DesktopStore>((set, get) => ({
   moltbotStatus: defaultMoltbotStatus,
   showSetupWizard: !hasCompletedSetupBefore,
   hasCompletedSetup: hasCompletedSetupBefore,
+  showTutorial: false,
+  hasCompletedTutorial: hasCompletedTutorialBefore,
   messages: [],
   skills: defaultSkills,
   appStoreItems: defaultAppStoreItems,
@@ -310,19 +322,105 @@ export const useDesktopStore = create<DesktopStore>((set, get) => ({
   },
 
   executeCommand: (command: string) => {
+    const cmd = command.trim().toLowerCase();
+    const args = command.trim().split(' ').slice(1);
+
+    // Handle exec command
+    if (cmd.startsWith('exec ') || cmd === 'exec') {
+      const execCmd = args.join(' ') || '';
+      if (!execCmd) {
+        set(state => ({
+          terminalOutput: [...state.terminalOutput, `moltbot@moltos ~ % ${command}`,
+            'Usage: exec <command> [options]',
+            '',
+            'Options:',
+            '  --background    Run command in background',
+            '  --timeout <s>   Set timeout in seconds (default: 1800)',
+            '  --pty           Run in pseudo-terminal mode',
+            '',
+            'Examples:',
+            '  exec ls -la',
+            '  exec --background npm run build',
+            '  exec --pty htop',
+            '',
+          ],
+          terminalHistory: [...state.terminalHistory, command],
+        }));
+        return;
+      }
+      set(state => ({
+        terminalOutput: [...state.terminalOutput, `moltbot@moltos ~ % ${command}`,
+          `✓ Executing: ${execCmd}`,
+          '  Connecting to MoltBot Gateway...',
+          '  Command sent to execution host',
+          `  Status: ${args.includes('--background') ? 'Running in background (ID: exec-' + Date.now() + ')' : 'Completed'}`,
+          '',
+        ],
+        terminalHistory: [...state.terminalHistory, command],
+      }));
+      return;
+    }
+
+    // Handle update command
+    if (cmd.startsWith('update') || cmd === 'update') {
+      const flag = args[0] || '--check';
+      set(state => ({
+        terminalOutput: [...state.terminalOutput, `moltbot@moltos ~ % ${command}`,
+          flag === '--install'
+            ? ['✓ Checking for updates...', '  Current version: 2025.1.28', '  Latest version: 2025.1.28', '  ✓ You are up to date!', ''].join('\n').split('\n')
+            : ['Checking for MoltBot updates...', '', '  Current version: 2025.1.28', '  Latest version: 2025.1.28', '  ✓ You are running the latest version', '', '  Run "update --install" to install updates', ''],
+        ].flat(),
+        terminalHistory: [...state.terminalHistory, command],
+      }));
+      return;
+    }
+
+    // Handle moltbot command
+    if (cmd.startsWith('moltbot ') || cmd === 'moltbot') {
+      const subCmd = args[0] || '';
+      const moltbotResponses: Record<string, string[]> = {
+        '': ['Usage: moltbot <subcommand>', '', 'Subcommands:', '  status   - Show MoltBot status', '  doctor   - Run diagnostics', '  config   - Show configuration', '  gateway  - Gateway controls', '  update   - Check for updates', ''],
+        'status': ['MoltBot Status:', '  Version: 2025.1.28', '  Gateway: ws://127.0.0.1:18789', '  Status: Connected ✓', '  Model: claude-opus-4-5', '  Uptime: 2h 34m', ''],
+        'doctor': ['Running MoltBot diagnostics...', '', '  ✓ Node.js version: v22.0.0', '  ✓ Gateway connection: OK', '  ✓ Configuration: Valid', '  ✓ Permissions: OK', '  ✓ Disk space: OK', '', 'All checks passed! 🎉', ''],
+        'config': ['MoltBot Configuration:', '  Config path: ~/.clawdbot/moltbot.json', '  Workspace: ~/clawd', '  Gateway port: 18789', '  Model: anthropic/claude-opus-4-5', '  Auto-update: enabled', ''],
+        'gateway': ['Gateway Controls:', '  moltbot gateway start    - Start gateway', '  moltbot gateway stop     - Stop gateway', '  moltbot gateway restart  - Restart gateway', '  moltbot gateway status   - Check status', ''],
+      };
+      set(state => ({
+        terminalOutput: [...state.terminalOutput, `moltbot@moltos ~ % ${command}`, ...(moltbotResponses[subCmd] || [`Unknown subcommand: ${subCmd}`, 'Run "moltbot" for usage', ''])],
+        terminalHistory: [...state.terminalHistory, command],
+      }));
+      return;
+    }
+
+    // Handle tutorial command
+    if (cmd === 'tutorial') {
+      get().startTutorial();
+      set(state => ({
+        terminalOutput: [...state.terminalOutput, `moltbot@moltos ~ % ${command}`, '✓ Starting tutorial...', ''],
+        terminalHistory: [...state.terminalHistory, command],
+      }));
+      return;
+    }
+
     const responses: Record<string, string[]> = {
       help: [
         'Available commands:',
-        '  help     - Show this help message',
-        '  clear    - Clear terminal output',
-        '  status   - Show system status',
-        '  skills   - List installed skills',
-        '  agents   - List active agents',
-        '  whoami   - Display current user',
-        '  date     - Show current date and time',
-        '  cowsay   - Fun cow ASCII art',
-        '  matrix   - Enter the matrix',
-        '  fortune  - Get a random fortune',
+        '  help      - Show this help message',
+        '  clear     - Clear terminal output',
+        '  status    - Show system status',
+        '  skills    - List installed skills',
+        '  agents    - List active agents',
+        '  whoami    - Display current user',
+        '  date      - Show current date and time',
+        '  cowsay    - Fun cow ASCII art',
+        '  matrix    - Enter the matrix',
+        '  fortune   - Get a random fortune',
+        '',
+        'MoltBot Commands:',
+        '  exec      - Execute shell commands via MoltBot',
+        '  moltbot   - Run MoltBot CLI commands',
+        '  update    - Check for MoltBot updates',
+        '  tutorial  - Start the MoltOS tutorial',
         '',
       ],
       clear: [],
@@ -379,14 +477,14 @@ export const useDesktopStore = create<DesktopStore>((set, get) => ({
       ],
     };
 
-    const cmd = command.trim().toLowerCase();
+    const cmdLower = cmd.split(' ')[0];
 
-    if (cmd === 'clear') {
+    if (cmdLower === 'clear') {
       set({ terminalOutput: [], terminalHistory: [...get().terminalHistory, command] });
       return;
     }
 
-    const output = responses[cmd] || [`Command not found: ${command}`, 'Type "help" for available commands.', ''];
+    const output = responses[cmdLower] || [`Command not found: ${command}`, 'Type "help" for available commands.', ''];
 
     set(state => ({
       terminalOutput: [...state.terminalOutput, `moltbot@moltos ~ % ${command}`, ...output],
@@ -463,9 +561,29 @@ export const useDesktopStore = create<DesktopStore>((set, get) => ({
 
   completeSetup: () => {
     localStorage.setItem('moltos_setup_complete', 'true');
+    const hasSeenTutorial = localStorage.getItem('moltos_tutorial_complete') === 'true';
     set({
       hasCompletedSetup: true,
       showSetupWizard: false,
+      // Show tutorial if user hasn't seen it yet
+      showTutorial: !hasSeenTutorial,
     });
+  },
+
+  // Tutorial Actions
+  setShowTutorial: (show: boolean) => {
+    set({ showTutorial: show });
+  },
+
+  completeTutorial: () => {
+    localStorage.setItem('moltos_tutorial_complete', 'true');
+    set({
+      hasCompletedTutorial: true,
+      showTutorial: false,
+    });
+  },
+
+  startTutorial: () => {
+    set({ showTutorial: true });
   },
 }));
