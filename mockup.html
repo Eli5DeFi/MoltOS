@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MoltOS - Mockup Demo</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🦀</text></svg>">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
+      height: 100vh;
+      overflow: hidden;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+      color: white;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Menu Bar */
+    .menubar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 28px;
+      background: rgba(30, 30, 30, 0.85);
+      backdrop-filter: blur(20px);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      font-size: 13px;
+      z-index: 9999;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .menubar-left { display: flex; align-items: center; gap: 20px; }
+    .menubar-right { display: flex; align-items: center; gap: 12px; }
+    .apple-logo { font-size: 16px; cursor: pointer; padding: 2px 8px; border-radius: 4px; }
+    .apple-logo:hover { background: rgba(255,255,255,0.1); }
+    .app-name { font-weight: 600; }
+    .menu-items { display: flex; gap: 16px; color: rgba(255,255,255,0.7); }
+    .menu-items span:hover { color: white; cursor: pointer; }
+    .status-item { display: flex; align-items: center; gap: 6px; padding: 2px 8px; border-radius: 4px; cursor: pointer; }
+    .status-item:hover { background: rgba(255,255,255,0.1); }
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; }
+    .status-dot.green { background: #28c840; }
+    .status-dot.blue { background: #0a84ff; animation: pulse 1.5s infinite; }
+
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+    /* Desktop */
+    .desktop {
+      position: absolute;
+      top: 28px;
+      left: 0;
+      right: 0;
+      bottom: 80px;
+      overflow: hidden;
+    }
+
+    /* Background Pattern */
+    .bg-pattern {
+      position: absolute;
+      inset: 0;
+      opacity: 0.2;
+      background:
+        radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(255, 119, 48, 0.2) 0%, transparent 50%),
+        radial-gradient(circle at 40% 40%, rgba(0, 212, 255, 0.2) 0%, transparent 40%);
+    }
+
+    /* Dock */
+    .dock {
+      position: fixed;
+      bottom: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 4px;
+      padding: 6px 10px;
+      background: rgba(45, 45, 48, 0.85);
+      backdrop-filter: blur(20px);
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    .dock-item {
+      width: 52px;
+      height: 52px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      position: relative;
+    }
+    .dock-item:hover {
+      transform: translateY(-8px) scale(1.15);
+    }
+    .dock-item.active::after {
+      content: '';
+      position: absolute;
+      bottom: -4px;
+      width: 4px;
+      height: 4px;
+      background: white;
+      border-radius: 50%;
+    }
+    .dock-tooltip {
+      position: absolute;
+      bottom: 70px;
+      background: rgba(30,30,30,0.95);
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      white-space: nowrap;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s;
+    }
+    .dock-item:hover .dock-tooltip { opacity: 1; }
+
+    /* Window */
+    .window {
+      position: absolute;
+      background: rgba(40, 40, 40, 0.95);
+      backdrop-filter: blur(20px);
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.1);
+      box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+      overflow: hidden;
+      display: none;
+    }
+    .window.active { display: block; }
+    .window-header {
+      height: 38px;
+      background: rgba(55, 55, 55, 0.95);
+      display: flex;
+      align-items: center;
+      padding: 0 12px;
+      cursor: grab;
+      user-select: none;
+    }
+    .window-header:active { cursor: grabbing; }
+    .traffic-lights {
+      display: flex;
+      gap: 8px;
+    }
+    .traffic-light {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      cursor: pointer;
+    }
+    .traffic-light.red { background: #ff5f57; }
+    .traffic-light.yellow { background: #febc2e; }
+    .traffic-light.green { background: #28c840; }
+    .traffic-light:hover { filter: brightness(1.1); }
+    .window-title {
+      flex: 1;
+      text-align: center;
+      font-size: 13px;
+      font-weight: 500;
+      color: rgba(255,255,255,0.9);
+    }
+    .window-content {
+      padding: 16px;
+      height: calc(100% - 38px);
+      overflow: auto;
+    }
+
+    /* Setup Wizard Overlay */
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(10px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+    }
+    .overlay.hidden { display: none; }
+    .wizard-card {
+      background: linear-gradient(135deg, rgba(40,40,45,0.98), rgba(30,30,35,0.98));
+      border-radius: 24px;
+      border: 1px solid rgba(255,255,255,0.1);
+      padding: 40px;
+      max-width: 450px;
+      width: 90%;
+      text-align: center;
+      box-shadow: 0 40px 80px rgba(0,0,0,0.5);
+    }
+    .wizard-icon {
+      width: 80px;
+      height: 80px;
+      margin: 0 auto 24px;
+      background: linear-gradient(135deg, #ff6b35, #d62828);
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 40px;
+      box-shadow: 0 10px 30px rgba(255,107,53,0.3);
+    }
+    .wizard-title {
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+    .wizard-desc {
+      color: rgba(255,255,255,0.6);
+      margin-bottom: 32px;
+      line-height: 1.6;
+    }
+    .wizard-btn {
+      background: linear-gradient(135deg, #ff6b35, #d62828);
+      border: none;
+      color: white;
+      padding: 14px 32px;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+    .wizard-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px rgba(255,107,53,0.4);
+    }
+    .wizard-skip {
+      background: none;
+      border: none;
+      color: rgba(255,255,255,0.4);
+      margin-top: 16px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .wizard-skip:hover { color: rgba(255,255,255,0.6); }
+    .progress-dots {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 24px;
+    }
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.2);
+    }
+    .dot.active { background: #ff6b35; width: 24px; border-radius: 4px; }
+    .dot.done { background: rgba(255,107,53,0.5); }
+
+    /* Tutorial Highlight */
+    .tutorial-highlight {
+      position: fixed;
+      border: 2px solid #ff6b35;
+      border-radius: 20px;
+      pointer-events: none;
+      z-index: 9998;
+      animation: highlight-pulse 1.5s infinite;
+    }
+    @keyframes highlight-pulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(255,107,53,0.4); }
+      50% { box-shadow: 0 0 0 10px rgba(255,107,53,0); }
+    }
+
+    /* Terminal Content */
+    .terminal-content {
+      background: #1a1a1a;
+      font-family: 'SF Mono', 'Monaco', 'Menlo', monospace;
+      font-size: 13px;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+    .terminal-header {
+      padding: 8px 16px;
+      background: rgba(0,0,0,0.3);
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      display: flex;
+      justify-content: space-between;
+      color: rgba(255,255,255,0.5);
+    }
+    .terminal-output {
+      flex: 1;
+      padding: 16px;
+      overflow-y: auto;
+    }
+    .terminal-line { margin-bottom: 4px; }
+    .terminal-line .prompt { color: #28c840; }
+    .terminal-line .at { color: rgba(255,255,255,0.5); }
+    .terminal-line .host { color: #0a84ff; }
+    .terminal-input-line {
+      padding: 12px 16px;
+      border-top: 1px solid rgba(255,255,255,0.05);
+      display: flex;
+      align-items: center;
+    }
+    .terminal-input {
+      flex: 1;
+      background: none;
+      border: none;
+      color: white;
+      font-family: inherit;
+      font-size: inherit;
+      outline: none;
+      margin-left: 4px;
+    }
+    .cursor { width: 8px; height: 18px; background: rgba(255,255,255,0.7); animation: blink 1s infinite; }
+    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+    /* Chat App */
+    .chat-container { display: flex; flex-direction: column; height: 100%; }
+    .chat-messages { flex: 1; overflow-y: auto; padding: 16px; }
+    .chat-message {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .chat-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+    .chat-avatar.user { background: linear-gradient(135deg, #667eea, #764ba2); }
+    .chat-avatar.bot { background: linear-gradient(135deg, #ff6b35, #d62828); }
+    .chat-bubble {
+      background: rgba(255,255,255,0.05);
+      padding: 12px 16px;
+      border-radius: 16px;
+      max-width: 80%;
+    }
+    .chat-input-area {
+      padding: 16px;
+      border-top: 1px solid rgba(255,255,255,0.1);
+      display: flex;
+      gap: 12px;
+    }
+    .chat-input {
+      flex: 1;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 20px;
+      padding: 12px 16px;
+      color: white;
+      outline: none;
+    }
+    .chat-send {
+      background: #0a84ff;
+      border: none;
+      color: white;
+      padding: 12px 20px;
+      border-radius: 20px;
+      cursor: pointer;
+    }
+
+    /* Skills Grid */
+    .skills-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 16px;
+    }
+    .skill-card {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 16px;
+      padding: 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .skill-card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(255,255,255,0.2);
+      background: rgba(255,255,255,0.08);
+    }
+    .skill-icon { font-size: 32px; margin-bottom: 12px; }
+    .skill-name { font-weight: 600; margin-bottom: 4px; }
+    .skill-desc { font-size: 12px; color: rgba(255,255,255,0.5); }
+
+    /* Monitor */
+    .monitor-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+    .monitor-card {
+      background: rgba(255,255,255,0.05);
+      border-radius: 12px;
+      padding: 16px;
+    }
+    .monitor-label { font-size: 12px; color: rgba(255,255,255,0.5); margin-bottom: 8px; }
+    .monitor-value { font-size: 28px; font-weight: 700; }
+    .monitor-bar {
+      height: 6px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 3px;
+      margin-top: 8px;
+      overflow: hidden;
+    }
+    .monitor-bar-fill {
+      height: 100%;
+      border-radius: 3px;
+      transition: width 0.5s;
+    }
+    .monitor-bar-fill.cpu { background: linear-gradient(90deg, #28c840, #64d861); }
+    .monitor-bar-fill.memory { background: linear-gradient(90deg, #0a84ff, #5eb5ff); }
+    .monitor-bar-fill.disk { background: linear-gradient(90deg, #ff9f0a, #ffb84d); }
+  </style>
+</head>
+<body>
+  <!-- Menu Bar -->
+  <div class="menubar">
+    <div class="menubar-left">
+      <span class="apple-logo"></span>
+      <span class="app-name">Finder</span>
+      <div class="menu-items">
+        <span>File</span>
+        <span>Edit</span>
+        <span>View</span>
+        <span>Window</span>
+        <span>Help</span>
+      </div>
+    </div>
+    <div class="menubar-right">
+      <div class="status-item" onclick="showSetupWizard()">
+        <div class="status-dot green" id="moltbot-status"></div>
+        <span>🦞 MoltBot</span>
+      </div>
+      <div class="status-item">
+        <span>📶</span>
+      </div>
+      <div class="status-item">
+        <span>🔋 87%</span>
+      </div>
+      <div class="status-item" id="clock"></div>
+    </div>
+  </div>
+
+  <!-- Desktop -->
+  <div class="desktop">
+    <div class="bg-pattern"></div>
+
+    <!-- Chat Window -->
+    <div class="window" id="chat-window" style="top: 50px; left: 100px; width: 450px; height: 500px;">
+      <div class="window-header" onmousedown="startDrag(event, 'chat-window')">
+        <div class="traffic-lights">
+          <div class="traffic-light red" onclick="closeWindow('chat-window')"></div>
+          <div class="traffic-light yellow"></div>
+          <div class="traffic-light green"></div>
+        </div>
+        <div class="window-title">💬 Chat</div>
+        <div style="width: 52px;"></div>
+      </div>
+      <div class="window-content" style="padding: 0;">
+        <div class="chat-container">
+          <div class="chat-messages">
+            <div class="chat-message">
+              <div class="chat-avatar bot">🦞</div>
+              <div class="chat-bubble">Hello! I'm MoltBot, your AI assistant. How can I help you today?</div>
+            </div>
+            <div class="chat-message">
+              <div class="chat-avatar user">👤</div>
+              <div class="chat-bubble">Can you help me with coding?</div>
+            </div>
+            <div class="chat-message">
+              <div class="chat-avatar bot">🦞</div>
+              <div class="chat-bubble">Absolutely! I can help with code analysis, debugging, writing new features, and more. What are you working on?</div>
+            </div>
+          </div>
+          <div class="chat-input-area">
+            <input type="text" class="chat-input" placeholder="Type a message...">
+            <button class="chat-send">Send</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Terminal Window -->
+    <div class="window" id="terminal-window" style="top: 80px; left: 200px; width: 600px; height: 400px;">
+      <div class="window-header" onmousedown="startDrag(event, 'terminal-window')">
+        <div class="traffic-lights">
+          <div class="traffic-light red" onclick="closeWindow('terminal-window')"></div>
+          <div class="traffic-light yellow"></div>
+          <div class="traffic-light green"></div>
+        </div>
+        <div class="window-title">⬛ Terminal</div>
+        <div style="width: 52px;"></div>
+      </div>
+      <div class="window-content" style="padding: 0;">
+        <div class="terminal-content">
+          <div class="terminal-header">
+            <span>moltbot@moltos ~ </span>
+            <span style="color: #28c840;">zsh</span>
+          </div>
+          <div class="terminal-output" id="terminal-output">
+            <div class="terminal-line">Welcome to MoltOS Terminal v1.0</div>
+            <div class="terminal-line">Type "help" for available commands.</div>
+            <div class="terminal-line"></div>
+          </div>
+          <div class="terminal-input-line">
+            <span class="prompt">moltbot</span><span class="at">@</span><span class="host">moltos</span><span style="color: rgba(255,255,255,0.5);"> ~ % </span>
+            <input type="text" class="terminal-input" id="terminal-input" autofocus>
+            <div class="cursor"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Monitor Window -->
+    <div class="window" id="monitor-window" style="top: 100px; left: 350px; width: 500px; height: 350px;">
+      <div class="window-header" onmousedown="startDrag(event, 'monitor-window')">
+        <div class="traffic-lights">
+          <div class="traffic-light red" onclick="closeWindow('monitor-window')"></div>
+          <div class="traffic-light yellow"></div>
+          <div class="traffic-light green"></div>
+        </div>
+        <div class="window-title">🔴 Monitor</div>
+        <div style="width: 52px;"></div>
+      </div>
+      <div class="window-content">
+        <div class="monitor-grid">
+          <div class="monitor-card">
+            <div class="monitor-label">CPU Usage</div>
+            <div class="monitor-value" id="cpu-value">24%</div>
+            <div class="monitor-bar"><div class="monitor-bar-fill cpu" id="cpu-bar" style="width: 24%;"></div></div>
+          </div>
+          <div class="monitor-card">
+            <div class="monitor-label">Memory</div>
+            <div class="monitor-value" id="mem-value">45%</div>
+            <div class="monitor-bar"><div class="monitor-bar-fill memory" id="mem-bar" style="width: 45%;"></div></div>
+          </div>
+          <div class="monitor-card">
+            <div class="monitor-label">Disk</div>
+            <div class="monitor-value">67%</div>
+            <div class="monitor-bar"><div class="monitor-bar-fill disk" style="width: 67%;"></div></div>
+          </div>
+          <div class="monitor-card">
+            <div class="monitor-label">Network</div>
+            <div class="monitor-value" style="font-size: 18px;">↓ 5.8 MB/s<br>↑ 1.2 MB/s</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Skills Window -->
+    <div class="window" id="skills-window" style="top: 60px; left: 450px; width: 550px; height: 450px;">
+      <div class="window-header" onmousedown="startDrag(event, 'skills-window')">
+        <div class="traffic-lights">
+          <div class="traffic-light red" onclick="closeWindow('skills-window')"></div>
+          <div class="traffic-light yellow"></div>
+          <div class="traffic-light green"></div>
+        </div>
+        <div class="window-title">✨ Skills</div>
+        <div style="width: 52px;"></div>
+      </div>
+      <div class="window-content">
+        <div class="skills-grid">
+          <div class="skill-card"><div class="skill-icon">🔍</div><div class="skill-name">Code Analysis</div><div class="skill-desc">Analyze code structure</div></div>
+          <div class="skill-card"><div class="skill-icon">📦</div><div class="skill-name">Git Operations</div><div class="skill-desc">Safe git commands</div></div>
+          <div class="skill-card"><div class="skill-icon">📁</div><div class="skill-name">File Manager</div><div class="skill-desc">Browse files</div></div>
+          <div class="skill-card"><div class="skill-icon">🌐</div><div class="skill-name">Web Search</div><div class="skill-desc">Search the web</div></div>
+          <div class="skill-card"><div class="skill-icon">🎨</div><div class="skill-name">Image Gen</div><div class="skill-desc">Create images</div></div>
+          <div class="skill-card"><div class="skill-icon">📊</div><div class="skill-name">Data Viz</div><div class="skill-desc">Charts & graphs</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dock -->
+  <div class="dock">
+    <div class="dock-item active" onclick="toggleWindow('chat-window')">💬<div class="dock-tooltip">Chat</div></div>
+    <div class="dock-item" onclick="toggleWindow('apps-window')">📈<div class="dock-tooltip">Apps</div></div>
+    <div class="dock-item active" onclick="toggleWindow('skills-window')">✨<div class="dock-tooltip">Skills</div></div>
+    <div class="dock-item active" onclick="toggleWindow('monitor-window')">🔴<div class="dock-tooltip">Monitor</div></div>
+    <div class="dock-item active" onclick="toggleWindow('terminal-window')">⬛<div class="dock-tooltip">Terminal</div></div>
+    <div class="dock-item" onclick="toggleWindow('files-window')">📁<div class="dock-tooltip">Files</div></div>
+    <div class="dock-item" onclick="toggleWindow('calendar-window')">📅<div class="dock-tooltip">Calendar</div></div>
+    <div class="dock-item" onclick="toggleWindow('mail-window')">📧<div class="dock-tooltip">Mail</div></div>
+    <div class="dock-item" onclick="toggleWindow('agents-window')">🤖<div class="dock-tooltip">Agents</div></div>
+    <div class="dock-item" onclick="toggleWindow('settings-window')">⚙️<div class="dock-tooltip">Settings</div></div>
+  </div>
+
+  <!-- Setup Wizard Overlay -->
+  <div class="overlay" id="setup-overlay">
+    <div class="wizard-card">
+      <div class="progress-dots">
+        <div class="dot active" id="dot-1"></div>
+        <div class="dot" id="dot-2"></div>
+        <div class="dot" id="dot-3"></div>
+        <div class="dot" id="dot-4"></div>
+      </div>
+      <div class="wizard-icon">🦞</div>
+      <h1 class="wizard-title" id="wizard-title">Welcome to MoltOS</h1>
+      <p class="wizard-desc" id="wizard-desc">Your AI-powered desktop environment. Let's set up MoltBot to unlock the full potential of your workspace.</p>
+      <button class="wizard-btn" id="wizard-btn" onclick="nextWizardStep()">
+        Get Started <span>→</span>
+      </button>
+      <button class="wizard-skip" onclick="skipWizard()">Skip for now</button>
+    </div>
+  </div>
+
+  <!-- Tutorial Highlight -->
+  <div class="tutorial-highlight" id="tutorial-highlight" style="display: none;"></div>
+
+  <script>
+    let wizardStep = 1;
+    let dragTarget = null;
+    let dragOffset = { x: 0, y: 0 };
+
+    // Update clock
+    function updateClock() {
+      const now = new Date();
+      const options = { weekday: 'short', month: 'short', day: 'numeric' };
+      const date = now.toLocaleDateString('en-US', options);
+      const time = now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+      document.getElementById('clock').textContent = `${date} ${time}`;
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    // Update system stats
+    function updateStats() {
+      const cpu = Math.floor(15 + Math.random() * 30);
+      const mem = Math.floor(40 + Math.random() * 20);
+      document.getElementById('cpu-value').textContent = cpu + '%';
+      document.getElementById('cpu-bar').style.width = cpu + '%';
+      document.getElementById('mem-value').textContent = mem + '%';
+      document.getElementById('mem-bar').style.width = mem + '%';
+    }
+    setInterval(updateStats, 3000);
+
+    // Window management
+    function toggleWindow(id) {
+      const win = document.getElementById(id);
+      if (win) {
+        win.classList.toggle('active');
+        if (win.classList.contains('active')) {
+          bringToFront(win);
+        }
+      }
+    }
+
+    function closeWindow(id) {
+      const win = document.getElementById(id);
+      if (win) win.classList.remove('active');
+    }
+
+    function bringToFront(win) {
+      document.querySelectorAll('.window').forEach(w => w.style.zIndex = '100');
+      win.style.zIndex = '101';
+    }
+
+    // Drag functionality
+    function startDrag(e, id) {
+      dragTarget = document.getElementById(id);
+      const rect = dragTarget.getBoundingClientRect();
+      dragOffset.x = e.clientX - rect.left;
+      dragOffset.y = e.clientY - rect.top;
+      bringToFront(dragTarget);
+    }
+
+    document.addEventListener('mousemove', (e) => {
+      if (dragTarget) {
+        dragTarget.style.left = (e.clientX - dragOffset.x) + 'px';
+        dragTarget.style.top = (e.clientY - dragOffset.y) + 'px';
+      }
+    });
+
+    document.addEventListener('mouseup', () => {
+      dragTarget = null;
+    });
+
+    // Setup Wizard
+    const wizardSteps = [
+      { title: 'Welcome to MoltOS', desc: 'Your AI-powered desktop environment. Let\'s set up MoltBot to unlock the full potential of your workspace.', btn: 'Get Started →' },
+      { title: 'Checking Installation...', desc: 'Looking for MoltBot on your system...', btn: 'Continue →' },
+      { title: 'MoltBot Connected!', desc: 'MoltBot is installed and ready. Gateway running on ws://127.0.0.1:18789', btn: 'Start Tutorial →' },
+      { title: "You're All Set! 🎉", desc: 'Explore your AI-powered desktop. Click on apps in the dock to get started!', btn: 'Enter MoltOS' }
+    ];
+
+    function nextWizardStep() {
+      if (wizardStep < 4) {
+        wizardStep++;
+        updateWizard();
+      } else {
+        skipWizard();
+      }
+    }
+
+    function updateWizard() {
+      const step = wizardSteps[wizardStep - 1];
+      document.getElementById('wizard-title').textContent = step.title;
+      document.getElementById('wizard-desc').textContent = step.desc;
+      document.getElementById('wizard-btn').innerHTML = step.btn;
+
+      for (let i = 1; i <= 4; i++) {
+        const dot = document.getElementById('dot-' + i);
+        dot.className = 'dot';
+        if (i < wizardStep) dot.classList.add('done');
+        if (i === wizardStep) dot.classList.add('active');
+      }
+    }
+
+    function skipWizard() {
+      document.getElementById('setup-overlay').classList.add('hidden');
+      showTutorialHighlight();
+    }
+
+    function showSetupWizard() {
+      document.getElementById('setup-overlay').classList.remove('hidden');
+    }
+
+    // Tutorial highlight
+    function showTutorialHighlight() {
+      const dock = document.querySelector('.dock');
+      const rect = dock.getBoundingClientRect();
+      const highlight = document.getElementById('tutorial-highlight');
+      highlight.style.left = (rect.left - 4) + 'px';
+      highlight.style.top = (rect.top - 4) + 'px';
+      highlight.style.width = (rect.width + 8) + 'px';
+      highlight.style.height = (rect.height + 8) + 'px';
+      highlight.style.display = 'block';
+
+      setTimeout(() => {
+        highlight.style.display = 'none';
+      }, 5000);
+    }
+
+    // Terminal
+    const terminalCommands = {
+      help: [
+        'Available commands:',
+        '  help     - Show this help',
+        '  status   - System status',
+        '  cowsay   - Fun ASCII art',
+        '  matrix   - Enter the matrix',
+        '  fortune  - Random fortune',
+        '  clear    - Clear terminal'
+      ],
+      status: [
+        '┌─────────────────────────────┐',
+        '│   MoltOS System Status      │',
+        '├─────────────────────────────┤',
+        '│  CPU:     24%               │',
+        '│  Memory:  45%               │',
+        '│  MoltBot: Connected ✓       │',
+        '└─────────────────────────────┘'
+      ],
+      cowsay: [
+        ' _______________________',
+        '< Moo! I\'m MoltBot! 🦞 >',
+        ' -----------------------',
+        '        \\   ^__^',
+        '         \\  (oo)\\_______',
+        '            (__)\\       )\\/\\',
+        '                ||----w |',
+        '                ||     ||'
+      ],
+      matrix: [
+        '01001101 01001111 01001100 01010100',
+        'Wake up, Neo...',
+        'The Matrix has you...',
+        'Follow the white rabbit. 🐇'
+      ],
+      fortune: [
+        '🔮 ' + ['Your code will compile on the first try!', 'A wild bug appears! But you shall defeat it.', 'Documentation is in your future.'][Math.floor(Math.random() * 3)]
+      ]
+    };
+
+    document.getElementById('terminal-input').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        const input = e.target.value.trim().toLowerCase();
+        const output = document.getElementById('terminal-output');
+
+        output.innerHTML += `<div class="terminal-line"><span class="prompt">moltbot</span><span class="at">@</span><span class="host">moltos</span> ~ % ${input}</div>`;
+
+        if (input === 'clear') {
+          output.innerHTML = '';
+        } else if (terminalCommands[input]) {
+          terminalCommands[input].forEach(line => {
+            output.innerHTML += `<div class="terminal-line">${line}</div>`;
+          });
+        } else if (input) {
+          output.innerHTML += `<div class="terminal-line">Command not found: ${input}</div>`;
+          output.innerHTML += `<div class="terminal-line">Type "help" for available commands.</div>`;
+        }
+
+        output.innerHTML += `<div class="terminal-line"></div>`;
+        output.scrollTop = output.scrollHeight;
+        e.target.value = '';
+      }
+    });
+
+    // Initialize
+    document.querySelectorAll('.window').forEach(win => {
+      win.addEventListener('mousedown', () => bringToFront(win));
+    });
+  </script>
+</body>
+</html>
