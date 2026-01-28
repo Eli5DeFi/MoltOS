@@ -24,12 +24,72 @@
     .wallpaper-orbs {
       position: fixed;
       inset: 0;
-      background:
-        radial-gradient(ellipse 80% 50% at 20% 80%, rgba(255, 200, 87, 0.4) 0%, transparent 50%),
-        radial-gradient(ellipse 60% 40% at 80% 20%, rgba(100, 220, 255, 0.5) 0%, transparent 50%),
-        radial-gradient(ellipse 50% 60% at 50% 50%, rgba(255, 120, 200, 0.3) 0%, transparent 40%),
-        radial-gradient(ellipse 70% 50% at 90% 80%, rgba(120, 80, 255, 0.4) 0%, transparent 50%),
-        radial-gradient(ellipse 40% 30% at 10% 30%, rgba(64, 250, 190, 0.35) 0%, transparent 40%);
+      pointer-events: none;
+    }
+    .parallax-orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(60px);
+      transition: transform 0.15s ease-out;
+    }
+    .orb-1 {
+      width: 800px; height: 500px;
+      left: 10%; bottom: 10%;
+      background: radial-gradient(ellipse, rgba(255, 200, 87, 0.5) 0%, transparent 70%);
+    }
+    .orb-2 {
+      width: 600px; height: 400px;
+      right: 5%; top: 5%;
+      background: radial-gradient(ellipse, rgba(100, 220, 255, 0.6) 0%, transparent 70%);
+    }
+    .orb-3 {
+      width: 500px; height: 500px;
+      left: 40%; top: 30%;
+      background: radial-gradient(ellipse, rgba(255, 120, 200, 0.4) 0%, transparent 70%);
+    }
+    .orb-4 {
+      width: 600px; height: 400px;
+      right: 0%; bottom: 10%;
+      background: radial-gradient(ellipse, rgba(120, 80, 255, 0.5) 0%, transparent 70%);
+    }
+    .orb-5 {
+      width: 400px; height: 300px;
+      left: 0%; top: 15%;
+      background: radial-gradient(ellipse, rgba(64, 250, 190, 0.45) 0%, transparent 70%);
+    }
+
+    /* Floating particles */
+    .floating-particles {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+    }
+    .floating-particle {
+      position: absolute;
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.3);
+      animation: float-up linear infinite;
+    }
+    @keyframes float-up {
+      0% { transform: translateY(100vh); opacity: 0; }
+      10% { opacity: 0.6; }
+      90% { opacity: 0.6; }
+      100% { transform: translateY(-100px); opacity: 0; }
+    }
+
+    /* Cursor trail */
+    .cursor-trail {
+      position: fixed;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 9999;
+      background: radial-gradient(circle, rgba(255,255,255,0.6) 0%, rgba(168,85,247,0.4) 100%);
+      transition: transform 0.5s ease-out, opacity 0.5s ease-out;
     }
 
     /* Menu Bar */
@@ -74,14 +134,15 @@
       overflow: hidden;
     }
 
-    /* Dock - iOS 4 Style */
+    /* Dock - iOS 4 Style with Magnification */
     .dock {
       position: fixed;
       bottom: 8px;
       left: 50%;
       transform: translateX(-50%);
       display: flex;
-      gap: 6px;
+      align-items: flex-end;
+      gap: 4px;
       padding: 8px 12px;
       background: rgba(45, 45, 48, 0.85);
       backdrop-filter: blur(20px);
@@ -97,9 +158,10 @@
       justify-content: center;
       font-size: 28px;
       cursor: pointer;
-      transition: all 0.2s ease;
+      transition: width 0.15s ease-out, height 0.15s ease-out, transform 0.15s ease-out;
       position: relative;
       overflow: hidden;
+      transform-origin: bottom center;
       /* iOS 4 style base shadow */
       box-shadow:
         0 1px 3px rgba(0,0,0,0.3),
@@ -107,8 +169,8 @@
         inset 0 1px 0 rgba(255,255,255,0.3),
         inset 0 -1px 0 rgba(0,0,0,0.2);
     }
-    .dock-item:hover {
-      transform: translateY(-10px) scale(1.2);
+    .dock-item.magnified {
+      transform: translateY(-8px);
     }
     /* iOS 4 glossy shine */
     .dock-item::before {
@@ -181,7 +243,7 @@
     }
     .dock-item:hover .dock-tooltip { opacity: 1; }
 
-    /* Window */
+    /* Window with animations */
     .window {
       position: absolute;
       background: rgba(40, 40, 40, 0.95);
@@ -191,8 +253,52 @@
       box-shadow: 0 25px 50px rgba(0,0,0,0.5);
       overflow: hidden;
       display: none;
+      transform-origin: center center;
+      animation: none;
     }
-    .window.active { display: block; }
+    .window.active {
+      display: block;
+      animation: windowOpen 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    }
+    .window.closing {
+      animation: windowClose 0.2s ease-in forwards;
+    }
+    .window.minimizing {
+      animation: windowMinimize 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    }
+    @keyframes windowOpen {
+      0% {
+        opacity: 0;
+        transform: scale(0.5) translateY(50px) rotateX(15deg);
+      }
+      100% {
+        opacity: 1;
+        transform: scale(1) translateY(0) rotateX(0);
+      }
+    }
+    @keyframes windowClose {
+      0% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+      }
+      100% {
+        opacity: 0;
+        transform: scale(0.8) translateY(30px);
+      }
+    }
+    @keyframes windowMinimize {
+      0% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+      }
+      100% {
+        opacity: 0;
+        transform: scale(0.1) translateY(400px);
+      }
+    }
+    .window:hover:not(.closing):not(.minimizing) {
+      box-shadow: 0 30px 60px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.1);
+    }
     .window-header {
       height: 38px;
       background: rgba(55, 55, 55, 0.95);
@@ -636,7 +742,19 @@
 <body>
   <!-- Wallpaper -->
   <div class="wallpaper"></div>
-  <div class="wallpaper-orbs"></div>
+  <div class="wallpaper-orbs">
+    <div class="parallax-orb orb-1" data-parallax="1"></div>
+    <div class="parallax-orb orb-2" data-parallax="2"></div>
+    <div class="parallax-orb orb-3" data-parallax="3"></div>
+    <div class="parallax-orb orb-4" data-parallax="3"></div>
+    <div class="parallax-orb orb-5" data-parallax="3"></div>
+  </div>
+
+  <!-- Floating Particles -->
+  <div class="floating-particles" id="floating-particles"></div>
+
+  <!-- Cursor Trail Container -->
+  <div id="cursor-trail-container"></div>
 
   <!-- Menu Bar -->
   <div class="menubar">
@@ -967,6 +1085,136 @@
     let dragOffset = { x: 0, y: 0 };
     let aiMode = false;
 
+    // === MOUSE PARALLAX EFFECT ===
+    const orbs = document.querySelectorAll('.parallax-orb');
+    let mouseX = window.innerWidth / 2;
+    let mouseY = window.innerHeight / 2;
+    let smoothMouseX = mouseX;
+    let smoothMouseY = mouseY;
+
+    function updateParallax() {
+      // Smooth interpolation
+      smoothMouseX += (mouseX - smoothMouseX) * 0.08;
+      smoothMouseY += (mouseY - smoothMouseY) * 0.08;
+
+      orbs.forEach((orb, i) => {
+        const parallaxFactor = orb.dataset.parallax || 1;
+        const factors = [
+          { x: 30, y: 20 },
+          { x: -40, y: -30 },
+          { x: 20, y: 40 }
+        ];
+        const factor = factors[parallaxFactor - 1] || factors[0];
+
+        const xMove = ((smoothMouseX / window.innerWidth) - 0.5) * factor.x * 2;
+        const yMove = ((smoothMouseY / window.innerHeight) - 0.5) * factor.y * 2;
+        orb.style.transform = `translate(${xMove}px, ${yMove}px)`;
+      });
+
+      requestAnimationFrame(updateParallax);
+    }
+    updateParallax();
+
+    // === CURSOR TRAIL EFFECT ===
+    const trailContainer = document.getElementById('cursor-trail-container');
+    const trailParticles = [];
+    const maxTrailParticles = 15;
+
+    function createTrailParticle(x, y) {
+      const particle = document.createElement('div');
+      particle.className = 'cursor-trail';
+      particle.style.left = (x - 4) + 'px';
+      particle.style.top = (y - 4) + 'px';
+      particle.style.boxShadow = '0 0 10px rgba(168,85,247,0.5)';
+      trailContainer.appendChild(particle);
+      trailParticles.push({ el: particle, opacity: 1 });
+
+      if (trailParticles.length > maxTrailParticles) {
+        const oldest = trailParticles.shift();
+        oldest.el.remove();
+      }
+    }
+
+    function updateTrailParticles() {
+      trailParticles.forEach((p, i) => {
+        p.opacity -= 0.08;
+        p.el.style.opacity = Math.max(0, p.opacity);
+        p.el.style.transform = `scale(${p.opacity})`;
+        if (p.opacity <= 0) {
+          p.el.remove();
+          trailParticles.splice(i, 1);
+        }
+      });
+      requestAnimationFrame(updateTrailParticles);
+    }
+    updateTrailParticles();
+
+    // === DOCK MAGNIFICATION EFFECT ===
+    const dock = document.querySelector('.dock');
+    const dockItems = document.querySelectorAll('.dock-item');
+    const baseSize = 56;
+    const maxSize = 80;
+    const magnificationRange = 150;
+
+    function updateDockMagnification(mouseX) {
+      dockItems.forEach(item => {
+        const rect = item.getBoundingClientRect();
+        const itemCenterX = rect.left + rect.width / 2;
+        const distance = Math.abs(mouseX - itemCenterX);
+
+        if (distance < magnificationRange) {
+          const scale = 1 + (1 - distance / magnificationRange) * 0.4;
+          const size = Math.min(maxSize, baseSize * scale);
+          item.style.width = size + 'px';
+          item.style.height = size + 'px';
+          item.style.transform = `translateY(-${(size - baseSize) * 0.15}px)`;
+        } else {
+          item.style.width = baseSize + 'px';
+          item.style.height = baseSize + 'px';
+          item.style.transform = 'translateY(0)';
+        }
+      });
+    }
+
+    function resetDockMagnification() {
+      dockItems.forEach(item => {
+        item.style.width = baseSize + 'px';
+        item.style.height = baseSize + 'px';
+        item.style.transform = 'translateY(0)';
+      });
+    }
+
+    dock.addEventListener('mousemove', (e) => {
+      updateDockMagnification(e.clientX);
+    });
+
+    dock.addEventListener('mouseleave', () => {
+      resetDockMagnification();
+    });
+
+    // === FLOATING PARTICLES ===
+    const floatingContainer = document.getElementById('floating-particles');
+    function createFloatingParticle() {
+      const particle = document.createElement('div');
+      particle.className = 'floating-particle';
+      particle.style.left = Math.random() * 100 + '%';
+      particle.style.animationDuration = (10 + Math.random() * 20) + 's';
+      particle.style.animationDelay = Math.random() * 10 + 's';
+      particle.style.width = (2 + Math.random() * 3) + 'px';
+      particle.style.height = particle.style.width;
+      floatingContainer.appendChild(particle);
+    }
+    for (let i = 0; i < 20; i++) {
+      createFloatingParticle();
+    }
+
+    // === GLOBAL MOUSE TRACKING ===
+    document.addEventListener('mousemove', (e) => {
+      mouseX = e.clientX;
+      mouseY = e.clientY;
+      createTrailParticle(e.clientX, e.clientY);
+    });
+
     // Update clock
     function updateClock() {
       const now = new Date();
@@ -1002,7 +1250,12 @@
 
     function closeWindow(id) {
       const win = document.getElementById(id);
-      if (win) win.classList.remove('active');
+      if (win) {
+        win.classList.add('closing');
+        setTimeout(() => {
+          win.classList.remove('active', 'closing');
+        }, 200);
+      }
     }
 
     function bringToFront(win) {

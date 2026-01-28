@@ -1,4 +1,5 @@
-import { motion } from 'framer-motion';
+import { useRef } from 'react';
+import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import { useDesktopStore } from '@/store';
 import type { AppId } from '@/types';
 import {
@@ -39,6 +40,7 @@ const dockApps: DockApp[] = [
 
 export function Dock() {
   const { windows, openWindow } = useDesktopStore();
+  const mouseX = useMotionValue(Infinity);
 
   const isAppOpen = (appId: AppId) => windows.some(w => w.appId === appId);
 
@@ -48,17 +50,24 @@ export function Dock() {
       animate={{ y: 0, opacity: 1 }}
       transition={{ type: 'spring', stiffness: 300, damping: 30 }}
       className="fixed bottom-3 left-1/2 -translate-x-1/2 z-[9998]"
+      onMouseMove={(e) => mouseX.set(e.pageX)}
+      onMouseLeave={() => mouseX.set(Infinity)}
     >
-      <div className="flex items-end gap-2 px-3 py-2 rounded-2xl bg-white/10 backdrop-blur-2xl border border-white/20 shadow-2xl shadow-black/30">
-        {dockApps.map((app) => (
+      <motion.div
+        className="flex items-end gap-1 px-3 py-2 rounded-2xl bg-white/10 backdrop-blur-2xl border border-white/20 shadow-2xl shadow-black/30"
+        layout
+      >
+        {dockApps.map((app, i) => (
           <DockIcon
             key={app.id}
             app={app}
             isOpen={isAppOpen(app.id)}
             onClick={() => openWindow(app.id)}
+            mouseX={mouseX}
+            index={i}
           />
         ))}
-      </div>
+      </motion.div>
     </motion.div>
   );
 }
@@ -67,45 +76,100 @@ interface DockIconProps {
   app: DockApp;
   isOpen: boolean;
   onClick: () => void;
+  mouseX: ReturnType<typeof useMotionValue<number>>;
+  index: number;
 }
 
-function DockIcon({ app, isOpen, onClick }: DockIconProps) {
+function DockIcon({ app, isOpen, onClick, mouseX, index }: DockIconProps) {
+  const ref = useRef<HTMLButtonElement>(null);
+
+  // Calculate distance from mouse for magnification
+  const distance = useTransform(mouseX, (val) => {
+    const bounds = ref.current?.getBoundingClientRect() ?? { x: 0, width: 0 };
+    return val - bounds.x - bounds.width / 2;
+  });
+
+  // Magnification effect - scale based on distance
+  const baseSize = 56;
+  const maxSize = 80;
+  const magnificationRange = 150;
+
+  const size = useSpring(
+    useTransform(distance, [-magnificationRange, 0, magnificationRange], [baseSize, maxSize, baseSize]),
+    { mass: 0.1, stiffness: 150, damping: 12 }
+  );
+
+  const y = useSpring(
+    useTransform(distance, [-magnificationRange, 0, magnificationRange], [0, -12, 0]),
+    { mass: 0.1, stiffness: 150, damping: 12 }
+  );
+
   return (
     <motion.button
+      ref={ref}
       onClick={onClick}
       className="relative flex flex-col items-center group"
-      whileHover={{ scale: 1.2, y: -8 }}
-      whileTap={{ scale: 0.95 }}
-      transition={{ type: 'spring', stiffness: 400, damping: 17 }}
+      style={{ width: size, height: size, y }}
+      whileTap={{ scale: 0.9 }}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: index * 0.05 }}
     >
       {/* Tooltip */}
       <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        whileHover={{ opacity: 1, y: 0 }}
-        className="absolute -top-10 px-3 py-1.5 rounded-lg bg-gray-800/90 backdrop-blur text-white text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"
+        initial={{ opacity: 0, y: 10, scale: 0.8 }}
+        whileHover={{ opacity: 1, y: 0, scale: 1 }}
+        className="absolute -top-12 px-3 py-1.5 rounded-lg bg-gray-800/95 backdrop-blur-xl text-white text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-all pointer-events-none z-50"
+        style={{
+          boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
+        }}
       >
         {app.name}
-        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 rotate-45 w-2 h-2 bg-gray-800/90" />
+        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 rotate-45 w-2 h-2 bg-gray-800/95" />
       </motion.div>
 
       {/* iOS 4 Style Icon with Glossy Effect */}
-      <div
-        className="relative w-14 h-14 rounded-[12px] flex items-center justify-center text-white overflow-hidden"
+      <motion.div
+        className="relative w-full h-full rounded-[12px] flex items-center justify-center text-white overflow-hidden"
         style={{
           background: `linear-gradient(180deg, ${app.gradientFrom} 0%, ${app.gradientTo} 100%)`,
           boxShadow: `
             0 1px 3px rgba(0,0,0,0.3),
             0 4px 8px rgba(0,0,0,0.2),
-            inset 0 1px 0 rgba(255,255,255,0.3),
+            0 8px 16px rgba(0,0,0,0.15),
+            inset 0 1px 0 rgba(255,255,255,0.4),
+            inset 0 -1px 0 rgba(0,0,0,0.2)
+          `,
+        }}
+        whileHover={{
+          boxShadow: `
+            0 2px 6px rgba(0,0,0,0.3),
+            0 8px 16px rgba(0,0,0,0.25),
+            0 16px 32px rgba(0,0,0,0.2),
+            inset 0 1px 0 rgba(255,255,255,0.5),
             inset 0 -1px 0 rgba(0,0,0,0.2)
           `,
         }}
       >
+        {/* Animated shine sweep on hover */}
+        <motion.div
+          className="absolute inset-0 opacity-0 group-hover:opacity-100"
+          initial={false}
+          style={{
+            background: 'linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.4) 50%, transparent 60%)',
+            backgroundSize: '200% 100%',
+          }}
+          whileHover={{
+            backgroundPosition: ['200% 0', '-200% 0'],
+          }}
+          transition={{ duration: 0.8, ease: 'easeInOut' }}
+        />
+
         {/* Top glossy shine - iOS 4 signature effect */}
         <div
           className="absolute inset-x-0 top-0 h-[45%] rounded-t-[11px]"
           style={{
-            background: 'linear-gradient(180deg, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0.2) 50%, rgba(255,255,255,0) 100%)',
+            background: 'linear-gradient(180deg, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0.25) 50%, rgba(255,255,255,0) 100%)',
           }}
         />
 
@@ -113,34 +177,52 @@ function DockIcon({ app, isOpen, onClick }: DockIconProps) {
         <div
           className="absolute inset-[1px] rounded-[11px]"
           style={{
-            boxShadow: 'inset 0 0 8px rgba(255,255,255,0.15)',
+            boxShadow: 'inset 0 0 12px rgba(255,255,255,0.2)',
           }}
         />
 
-        {/* Icon */}
-        <div className="relative z-10 drop-shadow-[0_1px_1px_rgba(0,0,0,0.3)]">
+        {/* Icon with bounce animation */}
+        <motion.div
+          className="relative z-10 drop-shadow-[0_2px_2px_rgba(0,0,0,0.4)]"
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9, rotate: -5 }}
+        >
           {app.icon}
-        </div>
+        </motion.div>
 
         {/* Bottom reflection line */}
         <div
           className="absolute bottom-0 inset-x-0 h-[1px]"
           style={{
-            background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.2) 50%, transparent 100%)',
+            background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.3) 50%, transparent 100%)',
           }}
         />
-      </div>
+      </motion.div>
 
-      {/* Active indicator - glowing dot */}
+      {/* Active indicator - animated glowing dot */}
       {isOpen && (
         <motion.div
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
+          initial={{ scale: 0, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
           className="absolute -bottom-2 w-1.5 h-1.5 rounded-full bg-white"
           style={{
-            boxShadow: '0 0 6px rgba(255,255,255,0.8)',
+            boxShadow: '0 0 8px rgba(255,255,255,0.9), 0 0 16px rgba(255,255,255,0.5)',
           }}
-        />
+        >
+          {/* Pulse animation */}
+          <motion.div
+            className="absolute inset-0 rounded-full bg-white"
+            animate={{
+              scale: [1, 1.8, 1],
+              opacity: [0.8, 0, 0.8],
+            }}
+            transition={{
+              duration: 2,
+              repeat: Infinity,
+              ease: 'easeInOut',
+            }}
+          />
+        </motion.div>
       )}
     </motion.button>
   );
