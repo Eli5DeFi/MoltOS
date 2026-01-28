@@ -52,29 +52,42 @@ export function Desktop() {
   }, []);
 
   return (
-    <div className="relative h-full w-full overflow-hidden bg-gradient-to-br from-[#1a1a2e] via-[#16213e] to-[#0f3460]">
-      {/* Desktop Wallpaper Pattern */}
+    <div className="relative h-full w-full overflow-hidden">
+      {/* Bright Gradient Wallpaper - macOS Sonoma style */}
       <div
-        className="absolute inset-0 opacity-20"
+        className="absolute inset-0"
         style={{
-          backgroundImage: `
-            radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
-            radial-gradient(circle at 80% 20%, rgba(255, 119, 48, 0.2) 0%, transparent 50%),
-            radial-gradient(circle at 40% 40%, rgba(0, 212, 255, 0.2) 0%, transparent 40%),
-            radial-gradient(circle at 90% 90%, rgba(131, 56, 236, 0.25) 0%, transparent 50%)
+          background: `
+            linear-gradient(135deg,
+              #667eea 0%,
+              #764ba2 25%,
+              #f093fb 50%,
+              #f5576c 75%,
+              #4facfe 100%
+            )
           `,
         }}
       />
 
-      {/* Grid pattern overlay */}
+      {/* Animated gradient orbs for depth */}
       <div
-        className="absolute inset-0 opacity-[0.03]"
+        className="absolute inset-0"
         style={{
           backgroundImage: `
-            linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)
+            radial-gradient(ellipse 80% 50% at 20% 80%, rgba(255, 200, 87, 0.4) 0%, transparent 50%),
+            radial-gradient(ellipse 60% 40% at 80% 20%, rgba(100, 220, 255, 0.5) 0%, transparent 50%),
+            radial-gradient(ellipse 50% 60% at 50% 50%, rgba(255, 120, 200, 0.3) 0%, transparent 40%),
+            radial-gradient(ellipse 70% 50% at 90% 80%, rgba(120, 80, 255, 0.4) 0%, transparent 50%),
+            radial-gradient(ellipse 40% 30% at 10% 30%, rgba(64, 250, 190, 0.35) 0%, transparent 40%)
           `,
-          backgroundSize: '50px 50px',
+        }}
+      />
+
+      {/* Subtle noise texture for premium feel */}
+      <div
+        className="absolute inset-0 opacity-[0.015]"
+        style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
         }}
       />
 
