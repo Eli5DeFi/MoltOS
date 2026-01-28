@@ -109,23 +109,65 @@
       z-index: 9999;
       border-bottom: 1px solid rgba(255,255,255,0.05);
     }
-    .menubar-left { display: flex; align-items: center; gap: 16px; }
+    .menubar-left { display: flex; align-items: center; gap: 0; }
     .menubar-right { display: flex; align-items: center; gap: 10px; }
-    .moltbot-logo { font-size: 16px; cursor: pointer; padding: 2px 8px; border-radius: 4px; display: flex; align-items: center; gap: 6px; font-weight: 600; }
+    .moltbot-logo { font-size: 18px; cursor: pointer; padding: 2px 10px; border-radius: 4px; }
     .moltbot-logo:hover { background: rgba(255,255,255,0.1); }
-    .social-links { display: flex; gap: 4px; }
-    .social-link {
-      display: flex; align-items: center; gap: 5px;
-      padding: 3px 10px; border-radius: 6px;
-      color: rgba(255,255,255,0.7);
-      text-decoration: none; font-size: 12px;
-      transition: all 0.2s;
+    .app-name { font-weight: 600; padding: 2px 10px; cursor: default; }
+    .menu-items { display: flex; gap: 0; }
+    .menu-item {
+      position: relative;
+      padding: 2px 10px;
+      border-radius: 4px;
+      color: rgba(255,255,255,0.85);
+      cursor: pointer;
+      font-size: 13px;
     }
-    .social-link:hover { background: rgba(255,255,255,0.1); color: white; }
-    .social-link.twitter:hover { color: #1DA1F2; }
-    .social-link.github:hover { color: #fff; }
-    .social-link.discord:hover { color: #5865F2; }
-    .social-link.docs:hover { color: #10b981; }
+    .menu-item:hover { background: rgba(255,255,255,0.1); }
+    .menu-item.active { background: rgba(59,130,246,0.8); }
+    .menu-dropdown {
+      display: none;
+      position: absolute;
+      top: 100%;
+      left: 0;
+      min-width: 220px;
+      background: rgba(40, 40, 45, 0.98);
+      backdrop-filter: blur(20px);
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.1);
+      box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+      padding: 4px 0;
+      z-index: 10000;
+    }
+    .menu-item.active .menu-dropdown { display: block; }
+    .menu-dropdown-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 12px;
+      font-size: 13px;
+      color: rgba(255,255,255,0.9);
+      cursor: pointer;
+    }
+    .menu-dropdown-item:hover { background: rgba(59,130,246,0.8); }
+    .menu-dropdown-item.disabled { color: rgba(255,255,255,0.3); pointer-events: none; }
+    .menu-dropdown-item .shortcut { color: rgba(255,255,255,0.4); font-size: 12px; }
+    .menu-divider { height: 1px; background: rgba(255,255,255,0.1); margin: 4px 0; }
+    .social-bar {
+      display: flex;
+      gap: 8px;
+      margin-left: 16px;
+      padding-left: 16px;
+      border-left: 1px solid rgba(255,255,255,0.1);
+    }
+    .social-icon {
+      font-size: 14px;
+      color: rgba(255,255,255,0.5);
+      cursor: pointer;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+    .social-icon:hover { color: white; background: rgba(255,255,255,0.1); }
     .status-item { display: flex; align-items: center; gap: 6px; padding: 2px 8px; border-radius: 4px; cursor: pointer; }
     .status-item:hover { background: rgba(255,255,255,0.1); }
     .status-dot { width: 8px; height: 8px; border-radius: 50%; }
@@ -975,6 +1017,134 @@
       cursor: pointer;
     }
     .widget-picker-close:hover { background: rgba(255,255,255,0.1); color: white; }
+
+    /* Launchpad Overlay */
+    .launchpad {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.85);
+      backdrop-filter: blur(30px);
+      z-index: 10002;
+      padding: 60px 40px 100px;
+      overflow-y: auto;
+    }
+    .launchpad.active { display: block; animation: fadeIn 0.3s ease-out; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    .launchpad-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 40px;
+    }
+    .launchpad-title {
+      font-size: 32px;
+      font-weight: 700;
+    }
+    .launchpad-search {
+      padding: 10px 16px;
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 10px;
+      color: white;
+      font-size: 14px;
+      width: 300px;
+      outline: none;
+    }
+    .launchpad-search::placeholder { color: rgba(255,255,255,0.4); }
+    .launchpad-close {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.1);
+      border: none;
+      color: white;
+      font-size: 20px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .launchpad-close:hover { background: rgba(255,255,255,0.2); }
+    .launchpad-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      gap: 30px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .launchpad-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      padding: 16px;
+      border-radius: 16px;
+      transition: all 0.2s;
+    }
+    .launchpad-item:hover {
+      background: rgba(255,255,255,0.1);
+      transform: scale(1.05);
+    }
+    .launchpad-icon {
+      width: 80px;
+      height: 80px;
+      border-radius: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 40px;
+      position: relative;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.2);
+    }
+    .launchpad-icon::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 17px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0) 50%);
+    }
+    .launchpad-icon.dev { background: linear-gradient(180deg, #3b82f6, #1d4ed8); }
+    .launchpad-icon.security { background: linear-gradient(180deg, #ef4444, #b91c1c); }
+    .launchpad-icon.creative { background: linear-gradient(180deg, #ec4899, #be185d); }
+    .launchpad-icon.research { background: linear-gradient(180deg, #22c55e, #15803d); }
+    .launchpad-icon.ai { background: linear-gradient(180deg, #a855f7, #7c3aed); }
+    .launchpad-icon.data { background: linear-gradient(180deg, #f59e0b, #d97706); }
+    .launchpad-name {
+      font-size: 13px;
+      font-weight: 500;
+      text-align: center;
+      max-width: 100px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .launchpad-badge {
+      position: absolute;
+      top: -4px;
+      right: -4px;
+      background: #ef4444;
+      color: white;
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 10px;
+      font-weight: 600;
+    }
+    .launchpad-section-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: rgba(255,255,255,0.5);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin: 30px 0 20px;
+      max-width: 1200px;
+      margin-left: auto;
+      margin-right: auto;
+    }
   </style>
 </head>
 <body>
@@ -997,12 +1167,80 @@
   <!-- Menu Bar -->
   <div class="menubar">
     <div class="menubar-left">
-      <span class="moltbot-logo" onclick="showSetupWizard()">🦞 MoltOS</span>
-      <div class="social-links">
-        <a href="https://twitter.com/moltbot" target="_blank" class="social-link twitter">𝕏 Twitter</a>
-        <a href="https://github.com/moltbot" target="_blank" class="social-link github">◐ GitHub</a>
-        <a href="https://discord.gg/moltbot" target="_blank" class="social-link discord">◉ Discord</a>
-        <a href="https://docs.moltbot.ai" target="_blank" class="social-link docs">📖 Docs</a>
+      <span class="moltbot-logo" onclick="toggleMenu('moltbot-menu')">🦞</span>
+      <div class="menu-item" id="moltbot-menu" onclick="toggleMenu('moltbot-menu')">
+        <div class="menu-dropdown">
+          <div class="menu-dropdown-item" onclick="showAboutModal()">About MoltOS</div>
+          <div class="menu-divider"></div>
+          <div class="menu-dropdown-item" onclick="toggleWindow('settings-window')">System Preferences...</div>
+          <div class="menu-dropdown-item" onclick="showLaunchpad()">Installed Skills...</div>
+          <div class="menu-divider"></div>
+          <div class="menu-dropdown-item disabled">Recent Items</div>
+          <div class="menu-divider"></div>
+          <div class="menu-dropdown-item" onclick="toggleWindow('security-window')">Security Center...</div>
+          <div class="menu-divider"></div>
+          <div class="menu-dropdown-item disabled">Sleep</div>
+          <div class="menu-dropdown-item disabled">Restart...</div>
+          <div class="menu-dropdown-item disabled">Shut Down...</div>
+        </div>
+      </div>
+      <span class="app-name">Finder</span>
+      <div class="menu-items">
+        <div class="menu-item" onclick="toggleMenu('file-menu')" id="file-menu">File
+          <div class="menu-dropdown">
+            <div class="menu-dropdown-item" onclick="createNewWindow()">New Window <span class="shortcut">⌘N</span></div>
+            <div class="menu-dropdown-item" onclick="createNewTab()">New Tab <span class="shortcut">⌘T</span></div>
+            <div class="menu-divider"></div>
+            <div class="menu-dropdown-item" onclick="toggleWindow('chat-window')">Open Chat</div>
+            <div class="menu-dropdown-item" onclick="toggleWindow('terminal-window')">Open Terminal</div>
+            <div class="menu-dropdown-item" onclick="toggleWindow('monitor-window')">Open Monitor</div>
+            <div class="menu-divider"></div>
+            <div class="menu-dropdown-item" onclick="closeActiveWindow()">Close Window <span class="shortcut">⌘W</span></div>
+          </div>
+        </div>
+        <div class="menu-item" onclick="toggleMenu('edit-menu')" id="edit-menu">Edit
+          <div class="menu-dropdown">
+            <div class="menu-dropdown-item disabled">Undo <span class="shortcut">⌘Z</span></div>
+            <div class="menu-dropdown-item disabled">Redo <span class="shortcut">⇧⌘Z</span></div>
+            <div class="menu-divider"></div>
+            <div class="menu-dropdown-item" onclick="execCommand('cut')">Cut <span class="shortcut">⌘X</span></div>
+            <div class="menu-dropdown-item" onclick="execCommand('copy')">Copy <span class="shortcut">⌘C</span></div>
+            <div class="menu-dropdown-item" onclick="execCommand('paste')">Paste <span class="shortcut">⌘V</span></div>
+            <div class="menu-dropdown-item" onclick="execCommand('selectAll')">Select All <span class="shortcut">⌘A</span></div>
+          </div>
+        </div>
+        <div class="menu-item" onclick="toggleMenu('view-menu')" id="view-menu">View
+          <div class="menu-dropdown">
+            <div class="menu-dropdown-item" onclick="showLaunchpad()">Show Launchpad</div>
+            <div class="menu-dropdown-item" onclick="toggleWidgets()">Toggle Widgets</div>
+            <div class="menu-divider"></div>
+            <div class="menu-dropdown-item" onclick="arrangeWindows()">Arrange Windows</div>
+            <div class="menu-dropdown-item" onclick="cascadeWindows()">Cascade Windows</div>
+            <div class="menu-divider"></div>
+            <div class="menu-dropdown-item" onclick="toggleFullscreen()">Enter Full Screen <span class="shortcut">⌃⌘F</span></div>
+          </div>
+        </div>
+        <div class="menu-item" onclick="toggleMenu('window-menu')" id="window-menu">Window
+          <div class="menu-dropdown">
+            <div class="menu-dropdown-item" onclick="minimizeAllWindows()">Minimize All</div>
+            <div class="menu-dropdown-item" onclick="showAllWindows()">Show All Windows</div>
+            <div class="menu-divider"></div>
+            <div class="menu-dropdown-item" onclick="toggleWindow('chat-window')">💬 Chat</div>
+            <div class="menu-dropdown-item" onclick="toggleWindow('terminal-window')">⬛ Terminal</div>
+            <div class="menu-dropdown-item" onclick="toggleWindow('monitor-window')">📊 Monitor</div>
+            <div class="menu-dropdown-item" onclick="toggleWindow('security-window')">🔒 Security Center</div>
+          </div>
+        </div>
+        <div class="menu-item" onclick="toggleMenu('help-menu')" id="help-menu">Help
+          <div class="menu-dropdown">
+            <div class="menu-dropdown-item" onclick="showHelp()">MoltOS Help</div>
+            <div class="menu-divider"></div>
+            <a href="https://docs.moltbot.ai" target="_blank" class="menu-dropdown-item" style="text-decoration:none;color:inherit;">Documentation ↗</a>
+            <a href="https://github.com/moltbot" target="_blank" class="menu-dropdown-item" style="text-decoration:none;color:inherit;">GitHub ↗</a>
+            <a href="https://discord.gg/moltbot" target="_blank" class="menu-dropdown-item" style="text-decoration:none;color:inherit;">Discord Community ↗</a>
+            <a href="https://twitter.com/moltbot" target="_blank" class="menu-dropdown-item" style="text-decoration:none;color:inherit;">Twitter ↗</a>
+          </div>
+        </div>
       </div>
     </div>
     <div class="menubar-right">
@@ -1499,6 +1737,90 @@
   <!-- Tutorial Highlight -->
   <div class="tutorial-highlight" id="tutorial-highlight" style="display: none;"></div>
 
+  <!-- Launchpad - Installed Skills -->
+  <div class="launchpad" id="launchpad">
+    <button class="launchpad-close" onclick="hideLaunchpad()">✕</button>
+    <div class="launchpad-header">
+      <div class="launchpad-title">✨ Installed Skills</div>
+      <input type="text" class="launchpad-search" placeholder="Search skills..." id="launchpad-search" oninput="filterLaunchpadSkills()">
+    </div>
+
+    <div class="launchpad-section-title">Development</div>
+    <div class="launchpad-grid" id="launchpad-dev">
+      <div class="launchpad-item" onclick="launchSkill('code-analysis')">
+        <div class="launchpad-icon dev"><span style="position:relative;z-index:1;">🔍</span></div>
+        <div class="launchpad-name">Code Analysis</div>
+      </div>
+      <div class="launchpad-item" onclick="launchSkill('git-ops')">
+        <div class="launchpad-icon dev"><span style="position:relative;z-index:1;">📦</span></div>
+        <div class="launchpad-name">Git Operations</div>
+      </div>
+      <div class="launchpad-item" onclick="launchSkill('debugger')">
+        <div class="launchpad-icon dev"><span style="position:relative;z-index:1;">🐛</span></div>
+        <div class="launchpad-name">Debugger</div>
+      </div>
+      <div class="launchpad-item" onclick="launchSkill('code-review')">
+        <div class="launchpad-icon dev"><span style="position:relative;z-index:1;">👁️</span></div>
+        <div class="launchpad-name">Code Review</div>
+      </div>
+    </div>
+
+    <div class="launchpad-section-title">Security</div>
+    <div class="launchpad-grid" id="launchpad-security">
+      <div class="launchpad-item" onclick="launchSkill('security-scanner')">
+        <div class="launchpad-icon security"><span style="position:relative;z-index:1;">🔒</span></div>
+        <div class="launchpad-name">Security Scanner</div>
+      </div>
+      <div class="launchpad-item" onclick="launchSkill('vuln-detector')">
+        <div class="launchpad-icon security">
+          <span style="position:relative;z-index:1;">🛡️</span>
+          <span class="launchpad-badge">NEW</span>
+        </div>
+        <div class="launchpad-name">Vuln Detector</div>
+      </div>
+    </div>
+
+    <div class="launchpad-section-title">Research</div>
+    <div class="launchpad-grid" id="launchpad-research">
+      <div class="launchpad-item" onclick="launchSkill('web-search')">
+        <div class="launchpad-icon research"><span style="position:relative;z-index:1;">🌐</span></div>
+        <div class="launchpad-name">Web Search</div>
+      </div>
+      <div class="launchpad-item" onclick="launchSkill('doc-reader')">
+        <div class="launchpad-icon research"><span style="position:relative;z-index:1;">📄</span></div>
+        <div class="launchpad-name">Doc Reader</div>
+      </div>
+    </div>
+
+    <div class="launchpad-section-title">AI & Creative</div>
+    <div class="launchpad-grid" id="launchpad-ai">
+      <div class="launchpad-item" onclick="launchSkill('image-gen')">
+        <div class="launchpad-icon creative"><span style="position:relative;z-index:1;">🎨</span></div>
+        <div class="launchpad-name">Image Gen</div>
+      </div>
+      <div class="launchpad-item" onclick="launchSkill('text-to-speech')">
+        <div class="launchpad-icon ai"><span style="position:relative;z-index:1;">🗣️</span></div>
+        <div class="launchpad-name">Text to Speech</div>
+      </div>
+      <div class="launchpad-item" onclick="launchSkill('translator')">
+        <div class="launchpad-icon ai"><span style="position:relative;z-index:1;">🌍</span></div>
+        <div class="launchpad-name">Translator</div>
+      </div>
+    </div>
+
+    <div class="launchpad-section-title">Data & Analytics</div>
+    <div class="launchpad-grid" id="launchpad-data">
+      <div class="launchpad-item" onclick="launchSkill('data-viz')">
+        <div class="launchpad-icon data"><span style="position:relative;z-index:1;">📊</span></div>
+        <div class="launchpad-name">Data Viz</div>
+      </div>
+      <div class="launchpad-item" onclick="launchSkill('csv-parser')">
+        <div class="launchpad-icon data"><span style="position:relative;z-index:1;">📈</span></div>
+        <div class="launchpad-name">CSV Parser</div>
+      </div>
+    </div>
+  </div>
+
   <!-- Widget Picker Modal -->
   <div class="widget-picker" id="widget-picker">
     <div class="widget-picker-card">
@@ -1866,6 +2188,190 @@
     }
     setInterval(updateWidgetClock, 1000);
     updateWidgetClock();
+
+    // === MENU SYSTEM ===
+    let activeMenu = null;
+
+    function toggleMenu(menuId) {
+      const menu = document.getElementById(menuId);
+      if (activeMenu && activeMenu !== menu) {
+        activeMenu.classList.remove('active');
+      }
+      menu.classList.toggle('active');
+      activeMenu = menu.classList.contains('active') ? menu : null;
+      event.stopPropagation();
+    }
+
+    // Close menus when clicking outside
+    document.addEventListener('click', (e) => {
+      if (activeMenu && !e.target.closest('.menu-item')) {
+        activeMenu.classList.remove('active');
+        activeMenu = null;
+      }
+    });
+
+    // === LAUNCHPAD ===
+    function showLaunchpad() {
+      document.getElementById('launchpad').classList.add('active');
+      closeAllMenus();
+    }
+
+    function hideLaunchpad() {
+      document.getElementById('launchpad').classList.remove('active');
+    }
+
+    function filterLaunchpadSkills() {
+      const query = document.getElementById('launchpad-search').value.toLowerCase();
+      document.querySelectorAll('.launchpad-item').forEach(item => {
+        const name = item.querySelector('.launchpad-name').textContent.toLowerCase();
+        item.style.display = name.includes(query) ? 'flex' : 'none';
+      });
+    }
+
+    function launchSkill(skillId) {
+      hideLaunchpad();
+      // Show notification
+      showNotification(`Launching ${skillId}...`);
+    }
+
+    // === MENU ACTIONS ===
+    function closeAllMenus() {
+      document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
+      activeMenu = null;
+    }
+
+    function createNewWindow() {
+      toggleWindow('chat-window');
+      closeAllMenus();
+    }
+
+    function createNewTab() {
+      closeAllMenus();
+      showNotification('New tab created');
+    }
+
+    function closeActiveWindow() {
+      const windows = document.querySelectorAll('.window.active');
+      if (windows.length > 0) {
+        const lastWindow = windows[windows.length - 1];
+        closeWindow(lastWindow.id);
+      }
+      closeAllMenus();
+    }
+
+    function execCommand(cmd) {
+      document.execCommand(cmd);
+      closeAllMenus();
+    }
+
+    function toggleWidgets() {
+      const container = document.getElementById('widgets-container');
+      container.style.display = container.style.display === 'none' ? 'flex' : 'none';
+      closeAllMenus();
+    }
+
+    function arrangeWindows() {
+      const windows = document.querySelectorAll('.window.active');
+      let x = 50, y = 50;
+      windows.forEach(win => {
+        win.style.left = x + 'px';
+        win.style.top = y + 'px';
+        x += 30;
+        y += 30;
+      });
+      closeAllMenus();
+    }
+
+    function cascadeWindows() {
+      const windows = document.querySelectorAll('.window.active');
+      let x = 100, y = 50;
+      windows.forEach((win, i) => {
+        win.style.left = (x + i * 40) + 'px';
+        win.style.top = (y + i * 40) + 'px';
+      });
+      closeAllMenus();
+    }
+
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen();
+      } else {
+        document.exitFullscreen();
+      }
+      closeAllMenus();
+    }
+
+    function minimizeAllWindows() {
+      document.querySelectorAll('.window.active').forEach(win => {
+        minimizeWindow(win.id);
+      });
+      closeAllMenus();
+    }
+
+    function showAllWindows() {
+      ['chat-window', 'terminal-window', 'monitor-window'].forEach(id => {
+        const win = document.getElementById(id);
+        if (win && !win.classList.contains('active')) {
+          win.classList.add('active');
+        }
+      });
+      closeAllMenus();
+    }
+
+    function showHelp() {
+      closeAllMenus();
+      showNotification('MoltOS Help - Press ⌘? for shortcuts');
+    }
+
+    function showAboutModal() {
+      closeAllMenus();
+      showNotification('MoltOS v1.0.0 - AI-Powered Desktop');
+    }
+
+    function showNotification(message) {
+      const notif = document.createElement('div');
+      notif.style.cssText = `
+        position: fixed;
+        bottom: 100px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(40,40,45,0.95);
+        backdrop-filter: blur(20px);
+        padding: 12px 24px;
+        border-radius: 10px;
+        border: 1px solid rgba(255,255,255,0.1);
+        color: white;
+        font-size: 14px;
+        z-index: 10003;
+        animation: slideUp 0.3s ease-out;
+      `;
+      notif.textContent = message;
+      document.body.appendChild(notif);
+      setTimeout(() => {
+        notif.style.opacity = '0';
+        notif.style.transition = 'opacity 0.3s';
+        setTimeout(() => notif.remove(), 300);
+      }, 2000);
+    }
+
+    // Add slideUp animation
+    const styleSheet = document.createElement('style');
+    styleSheet.textContent = `@keyframes slideUp { from { transform: translateX(-50%) translateY(20px); opacity: 0; } to { transform: translateX(-50%) translateY(0); opacity: 1; } }`;
+    document.head.appendChild(styleSheet);
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+      if (e.metaKey || e.ctrlKey) {
+        if (e.key === 'n') { e.preventDefault(); createNewWindow(); }
+        if (e.key === 'w') { e.preventDefault(); closeActiveWindow(); }
+        if (e.key === ',') { e.preventDefault(); toggleWindow('settings-window'); }
+      }
+      if (e.key === 'Escape') {
+        hideLaunchpad();
+        hideWidgetPicker();
+        closeAllMenus();
+      }
+    });
 
     // Update clock
     function updateClock() {
