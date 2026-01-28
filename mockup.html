@@ -109,13 +109,23 @@
       z-index: 9999;
       border-bottom: 1px solid rgba(255,255,255,0.05);
     }
-    .menubar-left { display: flex; align-items: center; gap: 20px; }
-    .menubar-right { display: flex; align-items: center; gap: 12px; }
-    .apple-logo { font-size: 16px; cursor: pointer; padding: 2px 8px; border-radius: 4px; }
-    .apple-logo:hover { background: rgba(255,255,255,0.1); }
-    .app-name { font-weight: 600; }
-    .menu-items { display: flex; gap: 16px; color: rgba(255,255,255,0.7); }
-    .menu-items span:hover { color: white; cursor: pointer; }
+    .menubar-left { display: flex; align-items: center; gap: 16px; }
+    .menubar-right { display: flex; align-items: center; gap: 10px; }
+    .moltbot-logo { font-size: 16px; cursor: pointer; padding: 2px 8px; border-radius: 4px; display: flex; align-items: center; gap: 6px; font-weight: 600; }
+    .moltbot-logo:hover { background: rgba(255,255,255,0.1); }
+    .social-links { display: flex; gap: 4px; }
+    .social-link {
+      display: flex; align-items: center; gap: 5px;
+      padding: 3px 10px; border-radius: 6px;
+      color: rgba(255,255,255,0.7);
+      text-decoration: none; font-size: 12px;
+      transition: all 0.2s;
+    }
+    .social-link:hover { background: rgba(255,255,255,0.1); color: white; }
+    .social-link.twitter:hover { color: #1DA1F2; }
+    .social-link.github:hover { color: #fff; }
+    .social-link.discord:hover { color: #5865F2; }
+    .social-link.docs:hover { color: #10b981; }
     .status-item { display: flex; align-items: center; gap: 6px; padding: 2px 8px; border-radius: 4px; cursor: pointer; }
     .status-item:hover { background: rgba(255,255,255,0.1); }
     .status-dot { width: 8px; height: 8px; border-radius: 50%; }
@@ -255,9 +265,12 @@
       display: none;
       transform-origin: center center;
       animation: none;
+      min-width: 300px;
+      min-height: 200px;
     }
     .window.active {
-      display: block;
+      display: flex;
+      flex-direction: column;
       animation: windowOpen 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
     }
     .window.closing {
@@ -307,6 +320,7 @@
       padding: 0 12px;
       cursor: grab;
       user-select: none;
+      flex-shrink: 0;
     }
     .window-header:active { cursor: grabbing; }
     .traffic-lights {
@@ -332,8 +346,49 @@
     }
     .window-content {
       padding: 16px;
-      height: calc(100% - 38px);
-      overflow: auto;
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
+    }
+    .window-content::-webkit-scrollbar {
+      width: 8px;
+    }
+    .window-content::-webkit-scrollbar-track {
+      background: rgba(255,255,255,0.05);
+      border-radius: 4px;
+    }
+    .window-content::-webkit-scrollbar-thumb {
+      background: rgba(255,255,255,0.2);
+      border-radius: 4px;
+    }
+    .window-content::-webkit-scrollbar-thumb:hover {
+      background: rgba(255,255,255,0.3);
+    }
+    /* Window resize handles */
+    .resize-handle {
+      position: absolute;
+      background: transparent;
+    }
+    .resize-handle.right {
+      right: 0; top: 38px; bottom: 0; width: 6px;
+      cursor: ew-resize;
+    }
+    .resize-handle.bottom {
+      bottom: 0; left: 0; right: 0; height: 6px;
+      cursor: ns-resize;
+    }
+    .resize-handle.corner {
+      right: 0; bottom: 0; width: 16px; height: 16px;
+      cursor: nwse-resize;
+    }
+    .resize-handle.corner::after {
+      content: '';
+      position: absolute;
+      right: 3px; bottom: 3px;
+      width: 8px; height: 8px;
+      border-right: 2px solid rgba(255,255,255,0.3);
+      border-bottom: 2px solid rgba(255,255,255,0.3);
     }
 
     /* Setup Wizard Overlay */
@@ -737,6 +792,189 @@
     .monitor-bar-fill.cpu { background: linear-gradient(90deg, #28c840, #64d861); }
     .monitor-bar-fill.memory { background: linear-gradient(90deg, #0a84ff, #5eb5ff); }
     .monitor-bar-fill.disk { background: linear-gradient(90deg, #ff9f0a, #ffb84d); }
+
+    /* Desktop Widgets */
+    .widgets-container {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      z-index: 50;
+    }
+    .widget {
+      background: rgba(30, 30, 35, 0.85);
+      backdrop-filter: blur(20px);
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,0.1);
+      padding: 16px;
+      width: 280px;
+      cursor: grab;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .widget:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+    }
+    .widget.dragging {
+      opacity: 0.9;
+      cursor: grabbing;
+      z-index: 1000;
+    }
+    .widget-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    .widget-title {
+      font-size: 12px;
+      font-weight: 600;
+      color: rgba(255,255,255,0.6);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .widget-actions {
+      display: flex;
+      gap: 6px;
+    }
+    .widget-btn {
+      width: 20px; height: 20px;
+      border-radius: 6px;
+      border: none;
+      background: rgba(255,255,255,0.05);
+      color: rgba(255,255,255,0.5);
+      font-size: 10px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .widget-btn:hover {
+      background: rgba(255,255,255,0.1);
+      color: white;
+    }
+    .widget-content { font-size: 14px; }
+    /* Clock Widget */
+    .widget-clock-time {
+      font-size: 42px;
+      font-weight: 200;
+      letter-spacing: -2px;
+      margin-bottom: 4px;
+    }
+    .widget-clock-date {
+      font-size: 14px;
+      color: rgba(255,255,255,0.5);
+    }
+    /* Weather Widget */
+    .widget-weather-main {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .widget-weather-icon { font-size: 40px; }
+    .widget-weather-temp { font-size: 36px; font-weight: 300; }
+    .widget-weather-desc {
+      font-size: 13px;
+      color: rgba(255,255,255,0.5);
+      margin-top: 8px;
+    }
+    /* Quick Notes Widget */
+    .widget-notes-input {
+      width: 100%;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 8px;
+      padding: 10px 12px;
+      color: white;
+      font-size: 13px;
+      resize: none;
+      min-height: 80px;
+      outline: none;
+    }
+    .widget-notes-input:focus {
+      border-color: rgba(168,85,247,0.5);
+    }
+    .widget-notes-input::placeholder {
+      color: rgba(255,255,255,0.3);
+    }
+    /* Add Widget Button */
+    .add-widget-btn {
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.1);
+      border: 1px dashed rgba(255,255,255,0.2);
+      color: rgba(255,255,255,0.5);
+      font-size: 20px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+      margin: 0 auto;
+    }
+    .add-widget-btn:hover {
+      background: rgba(255,255,255,0.15);
+      color: white;
+      border-color: rgba(255,255,255,0.3);
+    }
+    /* Widget Picker Modal */
+    .widget-picker {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(5px);
+      z-index: 10001;
+      align-items: center;
+      justify-content: center;
+    }
+    .widget-picker.active { display: flex; }
+    .widget-picker-card {
+      background: rgba(40,40,45,0.98);
+      border-radius: 20px;
+      border: 1px solid rgba(255,255,255,0.1);
+      padding: 24px;
+      width: 400px;
+      max-width: 90%;
+    }
+    .widget-picker-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 16px;
+    }
+    .widget-picker-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+    .widget-picker-item {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 12px;
+      padding: 16px;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s;
+    }
+    .widget-picker-item:hover {
+      background: rgba(255,255,255,0.1);
+      border-color: rgba(168,85,247,0.5);
+    }
+    .widget-picker-item-icon { font-size: 32px; margin-bottom: 8px; }
+    .widget-picker-item-name { font-size: 13px; font-weight: 500; }
+    .widget-picker-close {
+      margin-top: 16px;
+      width: 100%;
+      padding: 10px;
+      background: rgba(255,255,255,0.05);
+      border: none;
+      border-radius: 10px;
+      color: rgba(255,255,255,0.7);
+      cursor: pointer;
+    }
+    .widget-picker-close:hover { background: rgba(255,255,255,0.1); color: white; }
   </style>
 </head>
 <body>
@@ -759,26 +997,21 @@
   <!-- Menu Bar -->
   <div class="menubar">
     <div class="menubar-left">
-      <span class="apple-logo"></span>
-      <span class="app-name">Finder</span>
-      <div class="menu-items">
-        <span>File</span>
-        <span>Edit</span>
-        <span>View</span>
-        <span>Window</span>
-        <span>Help</span>
+      <span class="moltbot-logo" onclick="showSetupWizard()">🦞 MoltOS</span>
+      <div class="social-links">
+        <a href="https://twitter.com/moltbot" target="_blank" class="social-link twitter">𝕏 Twitter</a>
+        <a href="https://github.com/moltbot" target="_blank" class="social-link github">◐ GitHub</a>
+        <a href="https://discord.gg/moltbot" target="_blank" class="social-link discord">◉ Discord</a>
+        <a href="https://docs.moltbot.ai" target="_blank" class="social-link docs">📖 Docs</a>
       </div>
     </div>
     <div class="menubar-right">
-      <div class="status-item" onclick="showSetupWizard()">
+      <div class="status-item" onclick="toggleWindow('security-window')">
+        <span>🔒</span>
+      </div>
+      <div class="status-item">
         <div class="status-dot green" id="moltbot-status"></div>
-        <span>🦞 MoltBot</span>
-      </div>
-      <div class="status-item">
-        <span>📶</span>
-      </div>
-      <div class="status-item">
-        <span>🔋 87%</span>
+        <span>Connected</span>
       </div>
       <div class="status-item" id="clock"></div>
     </div>
@@ -786,13 +1019,60 @@
 
   <!-- Desktop -->
   <div class="desktop">
+    <!-- Widgets Container -->
+    <div class="widgets-container" id="widgets-container">
+      <!-- Clock Widget -->
+      <div class="widget" id="widget-clock" draggable="true">
+        <div class="widget-header">
+          <span class="widget-title">Clock</span>
+          <div class="widget-actions">
+            <button class="widget-btn" onclick="removeWidget('widget-clock')">✕</button>
+          </div>
+        </div>
+        <div class="widget-content">
+          <div class="widget-clock-time" id="widget-time">12:00</div>
+          <div class="widget-clock-date" id="widget-date">Monday, January 28</div>
+        </div>
+      </div>
+      <!-- Weather Widget -->
+      <div class="widget" id="widget-weather" draggable="true">
+        <div class="widget-header">
+          <span class="widget-title">Weather</span>
+          <div class="widget-actions">
+            <button class="widget-btn" onclick="removeWidget('widget-weather')">✕</button>
+          </div>
+        </div>
+        <div class="widget-content">
+          <div class="widget-weather-main">
+            <span class="widget-weather-icon">☀️</span>
+            <span class="widget-weather-temp">72°F</span>
+          </div>
+          <div class="widget-weather-desc">Sunny • San Francisco, CA</div>
+        </div>
+      </div>
+      <!-- Quick Notes Widget -->
+      <div class="widget" id="widget-notes" draggable="true">
+        <div class="widget-header">
+          <span class="widget-title">Quick Notes</span>
+          <div class="widget-actions">
+            <button class="widget-btn" onclick="removeWidget('widget-notes')">✕</button>
+          </div>
+        </div>
+        <div class="widget-content">
+          <textarea class="widget-notes-input" placeholder="Type your notes here..." id="notes-input"></textarea>
+        </div>
+      </div>
+      <!-- Add Widget Button -->
+      <button class="add-widget-btn" onclick="showWidgetPicker()">+</button>
+    </div>
+
     <!-- Chat Window -->
     <div class="window" id="chat-window" style="top: 50px; left: 100px; width: 450px; height: 500px;">
       <div class="window-header" onmousedown="startDrag(event, 'chat-window')">
         <div class="traffic-lights">
           <div class="traffic-light red" onclick="closeWindow('chat-window')"></div>
-          <div class="traffic-light yellow"></div>
-          <div class="traffic-light green"></div>
+          <div class="traffic-light yellow" onclick="minimizeWindow('chat-window')"></div>
+          <div class="traffic-light green" onclick="maximizeWindow('chat-window')"></div>
         </div>
         <div class="window-title">💬 Chat</div>
         <div style="width: 52px;"></div>
@@ -819,6 +1099,9 @@
           </div>
         </div>
       </div>
+      <div class="resize-handle right" onmousedown="startResize(event, 'chat-window', 'right')"></div>
+      <div class="resize-handle bottom" onmousedown="startResize(event, 'chat-window', 'bottom')"></div>
+      <div class="resize-handle corner" onmousedown="startResize(event, 'chat-window', 'corner')"></div>
     </div>
 
     <!-- Terminal Window -->
@@ -826,8 +1109,8 @@
       <div class="window-header" onmousedown="startDrag(event, 'terminal-window')">
         <div class="traffic-lights">
           <div class="traffic-light red" onclick="closeWindow('terminal-window')"></div>
-          <div class="traffic-light yellow"></div>
-          <div class="traffic-light green"></div>
+          <div class="traffic-light yellow" onclick="minimizeWindow('terminal-window')"></div>
+          <div class="traffic-light green" onclick="maximizeWindow('terminal-window')"></div>
         </div>
         <div class="window-title">⬛ Terminal</div>
         <div style="width: 52px;"></div>
@@ -869,6 +1152,9 @@
           </div>
         </div>
       </div>
+      <div class="resize-handle right" onmousedown="startResize(event, 'terminal-window', 'right')"></div>
+      <div class="resize-handle bottom" onmousedown="startResize(event, 'terminal-window', 'bottom')"></div>
+      <div class="resize-handle corner" onmousedown="startResize(event, 'terminal-window', 'corner')"></div>
     </div>
 
     <!-- Monitor Window -->
@@ -876,8 +1162,8 @@
       <div class="window-header" onmousedown="startDrag(event, 'monitor-window')">
         <div class="traffic-lights">
           <div class="traffic-light red" onclick="closeWindow('monitor-window')"></div>
-          <div class="traffic-light yellow"></div>
-          <div class="traffic-light green"></div>
+          <div class="traffic-light yellow" onclick="minimizeWindow('monitor-window')"></div>
+          <div class="traffic-light green" onclick="maximizeWindow('monitor-window')"></div>
         </div>
         <div class="window-title">📊 Monitor</div>
         <div style="width: 52px;"></div>
@@ -905,6 +1191,9 @@
           </div>
         </div>
       </div>
+      <div class="resize-handle right" onmousedown="startResize(event, 'monitor-window', 'right')"></div>
+      <div class="resize-handle bottom" onmousedown="startResize(event, 'monitor-window', 'bottom')"></div>
+      <div class="resize-handle corner" onmousedown="startResize(event, 'monitor-window', 'corner')"></div>
     </div>
 
     <!-- Skills Window - ClawdHub Style -->
@@ -912,8 +1201,8 @@
       <div class="window-header" onmousedown="startDrag(event, 'skills-window')">
         <div class="traffic-lights">
           <div class="traffic-light red" onclick="closeWindow('skills-window')"></div>
-          <div class="traffic-light yellow"></div>
-          <div class="traffic-light green"></div>
+          <div class="traffic-light yellow" onclick="minimizeWindow('skills-window')"></div>
+          <div class="traffic-light green" onclick="maximizeWindow('skills-window')"></div>
         </div>
         <div class="window-title">✨ Skills</div>
         <div style="width: 52px;"></div>
@@ -1040,6 +1329,137 @@
           <a href="https://clawdhub.com/skills" target="_blank">Browse on ClawdHub ↗</a>
         </div>
       </div>
+      <div class="resize-handle right" onmousedown="startResize(event, 'skills-window', 'right')"></div>
+      <div class="resize-handle bottom" onmousedown="startResize(event, 'skills-window', 'bottom')"></div>
+      <div class="resize-handle corner" onmousedown="startResize(event, 'skills-window', 'corner')"></div>
+    </div>
+
+    <!-- Security Window -->
+    <div class="window" id="security-window" style="top: 60px; left: 150px; width: 500px; height: 550px;">
+      <div class="window-header" onmousedown="startDrag(event, 'security-window')">
+        <div class="traffic-lights">
+          <div class="traffic-light red" onclick="closeWindow('security-window')"></div>
+          <div class="traffic-light yellow" onclick="minimizeWindow('security-window')"></div>
+          <div class="traffic-light green" onclick="maximizeWindow('security-window')"></div>
+        </div>
+        <div class="window-title">🔒 Security Center</div>
+        <div style="width: 52px;"></div>
+      </div>
+      <div class="window-content" style="background: linear-gradient(135deg, #1a1a2e, #16213e);">
+        <!-- Security Status -->
+        <div style="background: rgba(34,197,94,0.15); border: 1px solid rgba(34,197,94,0.3); border-radius: 12px; padding: 16px; margin-bottom: 16px; display: flex; align-items: center; gap: 12px;">
+          <span style="font-size: 32px;">🛡️</span>
+          <div>
+            <div style="font-weight: 600; color: #22c55e;">System Protected</div>
+            <div style="font-size: 12px; color: rgba(255,255,255,0.5);">All security checks passed • Last scan: 2 min ago</div>
+          </div>
+          <button style="margin-left: auto; padding: 8px 16px; background: rgba(34,197,94,0.2); border: none; border-radius: 8px; color: #22c55e; cursor: pointer; font-size: 12px;">Scan Now</button>
+        </div>
+
+        <!-- Security Settings -->
+        <div style="font-weight: 600; margin-bottom: 12px; font-size: 14px;">🔐 MoltBot Security</div>
+        <div style="background: rgba(255,255,255,0.05); border-radius: 12px; padding: 12px; margin-bottom: 16px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
+            <div>
+              <div style="font-size: 13px;">Sandbox Mode</div>
+              <div style="font-size: 11px; color: rgba(255,255,255,0.4);">Isolate MoltBot from system files</div>
+            </div>
+            <label style="position: relative; width: 44px; height: 24px;">
+              <input type="checkbox" checked style="display: none;">
+              <span style="position: absolute; inset: 0; background: #22c55e; border-radius: 12px; cursor: pointer;"></span>
+              <span style="position: absolute; top: 2px; left: 22px; width: 20px; height: 20px; background: white; border-radius: 50%; transition: 0.2s;"></span>
+            </label>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
+            <div>
+              <div style="font-size: 13px;">Data Encryption</div>
+              <div style="font-size: 11px; color: rgba(255,255,255,0.4);">Encrypt all data at rest and in transit</div>
+            </div>
+            <label style="position: relative; width: 44px; height: 24px;">
+              <input type="checkbox" checked style="display: none;">
+              <span style="position: absolute; inset: 0; background: #22c55e; border-radius: 12px; cursor: pointer;"></span>
+              <span style="position: absolute; top: 2px; left: 22px; width: 20px; height: 20px; background: white; border-radius: 50%; transition: 0.2s;"></span>
+            </label>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0;">
+            <div>
+              <div style="font-size: 13px;">Block Data Leaks</div>
+              <div style="font-size: 11px; color: rgba(255,255,255,0.4);">Prevent sensitive data from leaving system</div>
+            </div>
+            <label style="position: relative; width: 44px; height: 24px;">
+              <input type="checkbox" checked style="display: none;">
+              <span style="position: absolute; inset: 0; background: #22c55e; border-radius: 12px; cursor: pointer;"></span>
+              <span style="position: absolute; top: 2px; left: 22px; width: 20px; height: 20px; background: white; border-radius: 50%; transition: 0.2s;"></span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Skill Security -->
+        <div style="font-weight: 600; margin-bottom: 12px; font-size: 14px;">✨ Skill Installation Security</div>
+        <div style="background: rgba(255,255,255,0.05); border-radius: 12px; padding: 12px; margin-bottom: 16px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
+            <div>
+              <div style="font-size: 13px;">Verify Signatures</div>
+              <div style="font-size: 11px; color: rgba(255,255,255,0.4);">Only install cryptographically signed skills</div>
+            </div>
+            <label style="position: relative; width: 44px; height: 24px;">
+              <input type="checkbox" checked style="display: none;">
+              <span style="position: absolute; inset: 0; background: #22c55e; border-radius: 12px; cursor: pointer;"></span>
+              <span style="position: absolute; top: 2px; left: 22px; width: 20px; height: 20px; background: white; border-radius: 50%; transition: 0.2s;"></span>
+            </label>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
+            <div>
+              <div style="font-size: 13px;">Security Scan Before Install</div>
+              <div style="font-size: 11px; color: rgba(255,255,255,0.4);">Scan skills for vulnerabilities before installation</div>
+            </div>
+            <label style="position: relative; width: 44px; height: 24px;">
+              <input type="checkbox" checked style="display: none;">
+              <span style="position: absolute; inset: 0; background: #22c55e; border-radius: 12px; cursor: pointer;"></span>
+              <span style="position: absolute; top: 2px; left: 22px; width: 20px; height: 20px; background: white; border-radius: 50%; transition: 0.2s;"></span>
+            </label>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0;">
+            <div>
+              <div style="font-size: 13px;">Permission Review</div>
+              <div style="font-size: 11px; color: rgba(255,255,255,0.4);">Review skill permissions before granting access</div>
+            </div>
+            <label style="position: relative; width: 44px; height: 24px;">
+              <input type="checkbox" checked style="display: none;">
+              <span style="position: absolute; inset: 0; background: #22c55e; border-radius: 12px; cursor: pointer;"></span>
+              <span style="position: absolute; top: 2px; left: 22px; width: 20px; height: 20px; background: white; border-radius: 50%; transition: 0.2s;"></span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Recent Security Events -->
+        <div style="font-weight: 600; margin-bottom: 12px; font-size: 14px;">📋 Recent Security Events</div>
+        <div style="background: rgba(255,255,255,0.05); border-radius: 12px; padding: 12px; font-size: 12px;">
+          <div style="display: flex; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
+            <span style="color: #22c55e;">✓</span>
+            <span>Skill "Code Analysis" verified</span>
+            <span style="margin-left: auto; color: rgba(255,255,255,0.4);">2m ago</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
+            <span style="color: #22c55e;">✓</span>
+            <span>Security scan completed</span>
+            <span style="margin-left: auto; color: rgba(255,255,255,0.4);">5m ago</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
+            <span style="color: #f59e0b;">⚠</span>
+            <span>Blocked outbound connection attempt</span>
+            <span style="margin-left: auto; color: rgba(255,255,255,0.4);">12m ago</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px; padding: 6px 0;">
+            <span style="color: #22c55e;">✓</span>
+            <span>MoltBot sandbox initialized</span>
+            <span style="margin-left: auto; color: rgba(255,255,255,0.4);">1h ago</span>
+          </div>
+        </div>
+      </div>
+      <div class="resize-handle right" onmousedown="startResize(event, 'security-window', 'right')"></div>
+      <div class="resize-handle bottom" onmousedown="startResize(event, 'security-window', 'bottom')"></div>
+      <div class="resize-handle corner" onmousedown="startResize(event, 'security-window', 'corner')"></div>
     </div>
   </div>
 
@@ -1079,11 +1499,49 @@
   <!-- Tutorial Highlight -->
   <div class="tutorial-highlight" id="tutorial-highlight" style="display: none;"></div>
 
+  <!-- Widget Picker Modal -->
+  <div class="widget-picker" id="widget-picker">
+    <div class="widget-picker-card">
+      <div class="widget-picker-title">Add Widget</div>
+      <div class="widget-picker-grid">
+        <div class="widget-picker-item" onclick="addWidget('clock')">
+          <div class="widget-picker-item-icon">🕐</div>
+          <div class="widget-picker-item-name">Clock</div>
+        </div>
+        <div class="widget-picker-item" onclick="addWidget('weather')">
+          <div class="widget-picker-item-icon">☀️</div>
+          <div class="widget-picker-item-name">Weather</div>
+        </div>
+        <div class="widget-picker-item" onclick="addWidget('notes')">
+          <div class="widget-picker-item-icon">📝</div>
+          <div class="widget-picker-item-name">Quick Notes</div>
+        </div>
+        <div class="widget-picker-item" onclick="addWidget('calendar')">
+          <div class="widget-picker-item-icon">📅</div>
+          <div class="widget-picker-item-name">Calendar</div>
+        </div>
+        <div class="widget-picker-item" onclick="addWidget('cpu')">
+          <div class="widget-picker-item-icon">💻</div>
+          <div class="widget-picker-item-name">CPU Monitor</div>
+        </div>
+        <div class="widget-picker-item" onclick="addWidget('tasks')">
+          <div class="widget-picker-item-icon">✅</div>
+          <div class="widget-picker-item-name">Tasks</div>
+        </div>
+      </div>
+      <button class="widget-picker-close" onclick="hideWidgetPicker()">Cancel</button>
+    </div>
+  </div>
+
   <script>
     let wizardStep = 1;
     let dragTarget = null;
     let dragOffset = { x: 0, y: 0 };
     let aiMode = false;
+    let resizeTarget = null;
+    let resizeType = null;
+    let resizeStart = { x: 0, y: 0, width: 0, height: 0 };
+    let windowStates = {}; // Store window states for maximize/restore
 
     // === MOUSE PARALLAX EFFECT ===
     const orbs = document.querySelectorAll('.parallax-orb');
@@ -1213,7 +1671,201 @@
       mouseX = e.clientX;
       mouseY = e.clientY;
       createTrailParticle(e.clientX, e.clientY);
+
+      // Handle window resize
+      if (resizeTarget) {
+        const dx = e.clientX - resizeStart.x;
+        const dy = e.clientY - resizeStart.y;
+        if (resizeType === 'right' || resizeType === 'corner') {
+          resizeTarget.style.width = Math.max(300, resizeStart.width + dx) + 'px';
+        }
+        if (resizeType === 'bottom' || resizeType === 'corner') {
+          resizeTarget.style.height = Math.max(200, resizeStart.height + dy) + 'px';
+        }
+      }
     });
+
+    // === WINDOW RESIZE ===
+    function startResize(e, id, type) {
+      e.stopPropagation();
+      resizeTarget = document.getElementById(id);
+      resizeType = type;
+      resizeStart = {
+        x: e.clientX,
+        y: e.clientY,
+        width: resizeTarget.offsetWidth,
+        height: resizeTarget.offsetHeight
+      };
+    }
+
+    // === WINDOW MINIMIZE/MAXIMIZE ===
+    function minimizeWindow(id) {
+      const win = document.getElementById(id);
+      if (win) {
+        win.classList.add('minimizing');
+        setTimeout(() => {
+          win.classList.remove('active', 'minimizing');
+        }, 400);
+      }
+    }
+
+    function maximizeWindow(id) {
+      const win = document.getElementById(id);
+      if (!win) return;
+
+      if (windowStates[id]) {
+        // Restore
+        win.style.top = windowStates[id].top;
+        win.style.left = windowStates[id].left;
+        win.style.width = windowStates[id].width;
+        win.style.height = windowStates[id].height;
+        delete windowStates[id];
+      } else {
+        // Maximize
+        windowStates[id] = {
+          top: win.style.top,
+          left: win.style.left,
+          width: win.style.width,
+          height: win.style.height
+        };
+        win.style.top = '0';
+        win.style.left = '0';
+        win.style.width = '100%';
+        win.style.height = 'calc(100vh - 80px)';
+      }
+    }
+
+    // === WIDGET MANAGEMENT ===
+    let widgetCounter = 0;
+
+    function showWidgetPicker() {
+      document.getElementById('widget-picker').classList.add('active');
+    }
+
+    function hideWidgetPicker() {
+      document.getElementById('widget-picker').classList.remove('active');
+    }
+
+    function removeWidget(id) {
+      const widget = document.getElementById(id);
+      if (widget) {
+        widget.style.animation = 'windowClose 0.2s ease-in forwards';
+        setTimeout(() => widget.remove(), 200);
+      }
+    }
+
+    function addWidget(type) {
+      hideWidgetPicker();
+      widgetCounter++;
+      const container = document.getElementById('widgets-container');
+      const addBtn = container.querySelector('.add-widget-btn');
+
+      let widgetHTML = '';
+      const id = `widget-${type}-${widgetCounter}`;
+
+      if (type === 'clock') {
+        widgetHTML = `
+          <div class="widget" id="${id}" draggable="true" style="animation: windowOpen 0.3s ease-out;">
+            <div class="widget-header">
+              <span class="widget-title">Clock</span>
+              <div class="widget-actions"><button class="widget-btn" onclick="removeWidget('${id}')">✕</button></div>
+            </div>
+            <div class="widget-content">
+              <div class="widget-clock-time">${new Date().toLocaleTimeString('en-US', {hour: 'numeric', minute: '2-digit'})}</div>
+              <div class="widget-clock-date">${new Date().toLocaleDateString('en-US', {weekday: 'long', month: 'long', day: 'numeric'})}</div>
+            </div>
+          </div>`;
+      } else if (type === 'weather') {
+        widgetHTML = `
+          <div class="widget" id="${id}" draggable="true" style="animation: windowOpen 0.3s ease-out;">
+            <div class="widget-header">
+              <span class="widget-title">Weather</span>
+              <div class="widget-actions"><button class="widget-btn" onclick="removeWidget('${id}')">✕</button></div>
+            </div>
+            <div class="widget-content">
+              <div class="widget-weather-main"><span class="widget-weather-icon">☀️</span><span class="widget-weather-temp">72°F</span></div>
+              <div class="widget-weather-desc">Sunny • San Francisco</div>
+            </div>
+          </div>`;
+      } else if (type === 'notes') {
+        widgetHTML = `
+          <div class="widget" id="${id}" draggable="true" style="animation: windowOpen 0.3s ease-out;">
+            <div class="widget-header">
+              <span class="widget-title">Quick Notes</span>
+              <div class="widget-actions"><button class="widget-btn" onclick="removeWidget('${id}')">✕</button></div>
+            </div>
+            <div class="widget-content">
+              <textarea class="widget-notes-input" placeholder="Type your notes here..."></textarea>
+            </div>
+          </div>`;
+      } else if (type === 'calendar') {
+        const today = new Date();
+        widgetHTML = `
+          <div class="widget" id="${id}" draggable="true" style="animation: windowOpen 0.3s ease-out;">
+            <div class="widget-header">
+              <span class="widget-title">Calendar</span>
+              <div class="widget-actions"><button class="widget-btn" onclick="removeWidget('${id}')">✕</button></div>
+            </div>
+            <div class="widget-content" style="text-align: center;">
+              <div style="font-size: 14px; color: #ef4444; font-weight: 600;">${today.toLocaleDateString('en-US', {weekday: 'long'})}</div>
+              <div style="font-size: 48px; font-weight: 200;">${today.getDate()}</div>
+              <div style="font-size: 14px; color: rgba(255,255,255,0.5);">${today.toLocaleDateString('en-US', {month: 'long', year: 'numeric'})}</div>
+            </div>
+          </div>`;
+      } else if (type === 'cpu') {
+        widgetHTML = `
+          <div class="widget" id="${id}" draggable="true" style="animation: windowOpen 0.3s ease-out;">
+            <div class="widget-header">
+              <span class="widget-title">CPU Monitor</span>
+              <div class="widget-actions"><button class="widget-btn" onclick="removeWidget('${id}')">✕</button></div>
+            </div>
+            <div class="widget-content">
+              <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                <span>CPU</span><span id="${id}-cpu">24%</span>
+              </div>
+              <div class="monitor-bar"><div class="monitor-bar-fill cpu" id="${id}-cpu-bar" style="width: 24%;"></div></div>
+            </div>
+          </div>`;
+      } else if (type === 'tasks') {
+        widgetHTML = `
+          <div class="widget" id="${id}" draggable="true" style="animation: windowOpen 0.3s ease-out;">
+            <div class="widget-header">
+              <span class="widget-title">Tasks</span>
+              <div class="widget-actions"><button class="widget-btn" onclick="removeWidget('${id}')">✕</button></div>
+            </div>
+            <div class="widget-content">
+              <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                <input type="checkbox" style="width: 16px; height: 16px;">
+                <span style="font-size: 13px;">Review pull requests</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                <input type="checkbox" checked style="width: 16px; height: 16px;">
+                <span style="font-size: 13px; text-decoration: line-through; opacity: 0.5;">Deploy to production</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <input type="checkbox" style="width: 16px; height: 16px;">
+                <span style="font-size: 13px;">Update documentation</span>
+              </div>
+            </div>
+          </div>`;
+      }
+
+      addBtn.insertAdjacentHTML('beforebegin', widgetHTML);
+    }
+
+    // Update widget clock
+    function updateWidgetClock() {
+      const time = document.getElementById('widget-time');
+      const date = document.getElementById('widget-date');
+      if (time) {
+        time.textContent = new Date().toLocaleTimeString('en-US', {hour: 'numeric', minute: '2-digit'});
+      }
+      if (date) {
+        date.textContent = new Date().toLocaleDateString('en-US', {weekday: 'long', month: 'long', day: 'numeric'});
+      }
+    }
+    setInterval(updateWidgetClock, 1000);
+    updateWidgetClock();
 
     // Update clock
     function updateClock() {
@@ -1281,6 +1933,8 @@
 
     document.addEventListener('mouseup', () => {
       dragTarget = null;
+      resizeTarget = null;
+      resizeType = null;
     });
 
     // Terminal theme
