@@ -110,3 +110,48 @@ export interface SystemStatus {
 }
 
 export type SettingsMode = 'simple' | 'pro';
+
+// MoltBot Integration Types
+export type MoltBotInstallStatus =
+  | 'checking'
+  | 'not_installed'
+  | 'installed'
+  | 'configured'
+  | 'connected'
+  | 'error';
+
+export type SetupWizardStep =
+  | 'welcome'
+  | 'check_installation'
+  | 'install_method'
+  | 'installing'
+  | 'configure'
+  | 'connect'
+  | 'complete';
+
+export interface MoltBotConfig {
+  installed: boolean;
+  version?: string;
+  gatewayPort: number;
+  gatewayUrl: string;
+  model: string;
+  workspace: string;
+  configPath: string;
+}
+
+export interface MoltBotStatus {
+  installStatus: MoltBotInstallStatus;
+  isGatewayRunning: boolean;
+  version?: string;
+  activeSession?: string;
+  model?: string;
+  tokensUsed?: number;
+}
+
+export interface SetupWizardState {
+  isOpen: boolean;
+  currentStep: SetupWizardStep;
+  installMethod: 'npm' | 'script' | 'manual';
+  installProgress: number;
+  error?: string;
+}

@@ -3,7 +3,7 @@ import { format } from 'date-fns';
 import { Wifi, Battery, Activity } from 'lucide-react';
 
 export function MenuBar() {
-  const { currentTime, systemStatus, activeWindowId, windows } = useDesktopStore();
+  const { currentTime, systemStatus, activeWindowId, windows, moltbotStatus, setShowSetupWizard } = useDesktopStore();
 
   const activeWindow = windows.find(w => w.id === activeWindowId);
   const appName = activeWindow?.title || 'Finder';
@@ -34,17 +34,32 @@ export function MenuBar() {
 
       {/* Right section - Status indicators */}
       <div className="flex items-center gap-3">
-        {/* Clawdbot Status */}
-        <div className="flex items-center gap-1.5 px-2 py-0.5 rounded hover:bg-white/10 transition-colors cursor-pointer">
+        {/* MoltBot Status */}
+        <button
+          onClick={() => {
+            if (moltbotStatus.installStatus === 'not_installed') {
+              setShowSetupWizard(true);
+            }
+          }}
+          className="flex items-center gap-1.5 px-2 py-0.5 rounded hover:bg-white/10 transition-colors cursor-pointer"
+        >
           <div className={`w-2 h-2 rounded-full ${
-            systemStatus.clawdbotStatus === 'connected'
+            moltbotStatus.installStatus === 'connected'
               ? 'bg-green-400'
-              : systemStatus.clawdbotStatus === 'connecting'
-              ? 'bg-yellow-400 animate-pulse'
+              : moltbotStatus.installStatus === 'configured' || moltbotStatus.installStatus === 'installed'
+              ? 'bg-yellow-400'
+              : moltbotStatus.installStatus === 'checking'
+              ? 'bg-blue-400 animate-pulse'
               : 'bg-red-400'
           }`} />
-          <span className="text-xs">Clawdbot</span>
-        </div>
+          <span className="text-xs flex items-center gap-1">
+            <span className="hidden sm:inline">🦞</span>
+            MoltBot
+            {moltbotStatus.installStatus === 'not_installed' && (
+              <span className="text-[10px] text-orange-400">(Setup)</span>
+            )}
+          </span>
+        </button>
 
         {/* Activity */}
         <div className="flex items-center gap-1 px-2 py-0.5 rounded hover:bg-white/10 transition-colors cursor-pointer">

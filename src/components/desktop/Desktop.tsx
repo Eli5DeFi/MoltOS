@@ -3,14 +3,25 @@ import { useDesktopStore } from '@/store';
 import { MenuBar } from './MenuBar';
 import { Dock } from './Dock';
 import { Window } from './Window';
+import { SetupWizard } from '@/components/SetupWizard';
+import { moltbotService } from '@/services/moltbot';
 
 export function Desktop() {
-  const { windows, updateTime } = useDesktopStore();
+  const { windows, updateTime, showSetupWizard, completeSetup, setShowSetupWizard, setMoltbotStatus, hasCompletedSetup } = useDesktopStore();
 
   useEffect(() => {
     const interval = setInterval(updateTime, 1000);
     return () => clearInterval(interval);
   }, [updateTime]);
+
+  // Check MoltBot status on mount (if already completed setup)
+  useEffect(() => {
+    if (hasCompletedSetup) {
+      moltbotService.checkInstallation().then(status => {
+        setMoltbotStatus(status);
+      });
+    }
+  }, [hasCompletedSetup, setMoltbotStatus]);
 
   // Simulate system status updates
   useEffect(() => {
@@ -66,6 +77,17 @@ export function Desktop() {
 
       {/* Dock */}
       <Dock />
+
+      {/* Setup Wizard */}
+      {showSetupWizard && (
+        <SetupWizard
+          onComplete={completeSetup}
+          onSkip={() => {
+            setShowSetupWizard(false);
+            completeSetup();
+          }}
+        />
+      )}
     </div>
   );
 }

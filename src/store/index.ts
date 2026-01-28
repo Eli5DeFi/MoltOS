@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { WindowState, AppId, Message, SystemStatus, SettingsMode, Skill, AppStoreItem, FileItem, CalendarEvent, Email, Agent } from '@/types';
+import type { WindowState, AppId, Message, SystemStatus, SettingsMode, Skill, AppStoreItem, FileItem, CalendarEvent, Email, Agent, MoltBotStatus, MoltBotInstallStatus } from '@/types';
 
 interface DesktopStore {
   // Windows
@@ -11,6 +11,11 @@ interface DesktopStore {
   systemStatus: SystemStatus;
   currentTime: Date;
   settingsMode: SettingsMode;
+
+  // MoltBot
+  moltbotStatus: MoltBotStatus;
+  showSetupWizard: boolean;
+  hasCompletedSetup: boolean;
 
   // App Data
   messages: Message[];
@@ -62,6 +67,12 @@ interface DesktopStore {
 
   // Agent Actions
   toggleAgentStatus: (agentId: string) => void;
+
+  // MoltBot Actions
+  setMoltbotStatus: (status: MoltBotStatus) => void;
+  updateMoltbotInstallStatus: (status: MoltBotInstallStatus) => void;
+  setShowSetupWizard: (show: boolean) => void;
+  completeSetup: () => void;
 }
 
 const defaultSystemStatus: SystemStatus = {
@@ -72,6 +83,11 @@ const defaultSystemStatus: SystemStatus = {
   clawdbotStatus: 'connected',
   battery: 87,
   wifi: 'connected',
+};
+
+const defaultMoltbotStatus: MoltBotStatus = {
+  installStatus: 'checking',
+  isGatewayRunning: false,
 };
 
 const defaultSkills: Skill[] = [
@@ -137,6 +153,9 @@ const appDefaults: Record<AppId, { title: string; width: number; height: number 
   settings: { title: 'Settings', width: 650, height: 500 },
 };
 
+// Check if user has completed setup before
+const hasCompletedSetupBefore = localStorage.getItem('moltos_setup_complete') === 'true';
+
 export const useDesktopStore = create<DesktopStore>((set, get) => ({
   windows: [],
   activeWindowId: null,
@@ -144,6 +163,9 @@ export const useDesktopStore = create<DesktopStore>((set, get) => ({
   systemStatus: defaultSystemStatus,
   currentTime: new Date(),
   settingsMode: 'simple',
+  moltbotStatus: defaultMoltbotStatus,
+  showSetupWizard: !hasCompletedSetupBefore,
+  hasCompletedSetup: hasCompletedSetupBefore,
   messages: [],
   skills: defaultSkills,
   appStoreItems: defaultAppStoreItems,
@@ -416,5 +438,34 @@ export const useDesktopStore = create<DesktopStore>((set, get) => ({
           : a
       ),
     }));
+  },
+
+  // MoltBot Actions
+  setMoltbotStatus: (status: MoltBotStatus) => {
+    set({ moltbotStatus: status });
+    // Update clawdbot status in system status based on moltbot connection
+    if (status.isGatewayRunning) {
+      set(state => ({
+        systemStatus: { ...state.systemStatus, clawdbotStatus: 'connected' },
+      }));
+    }
+  },
+
+  updateMoltbotInstallStatus: (status: MoltBotInstallStatus) => {
+    set(state => ({
+      moltbotStatus: { ...state.moltbotStatus, installStatus: status },
+    }));
+  },
+
+  setShowSetupWizard: (show: boolean) => {
+    set({ showSetupWizard: show });
+  },
+
+  completeSetup: () => {
+    localStorage.setItem('moltos_setup_complete', 'true');
+    set({
+      hasCompletedSetup: true,
+      showSetupWizard: false,
+    });
   },
 }));
